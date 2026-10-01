@@ -1,0 +1,2529 @@
+{
+  "grid": {
+    "1": {
+      "number": 1,
+      "date": "2026-10-01",
+      "payload": {
+        "rows": [
+          "gen:7",
+          "type:bug",
+          "type:rock"
+        ],
+        "columns": [
+          "evo:none",
+          "type:water",
+          "size:small"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:1",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          31,
+          13,
+          29,
+          10,
+          5,
+          35,
+          16,
+          11,
+          15
+        ],
+        "score": 1.778,
+        "attempts": 1,
+        "rejections": {},
+        "frozenAt": "2026-10-01T20:47:15.126Z"
+      }
+    },
+    "2": {
+      "number": 2,
+      "date": "2026-10-02",
+      "payload": {
+        "rows": [
+          "type:ghost",
+          "flag:legendary",
+          "gen:3"
+        ],
+        "columns": [
+          "type:ground",
+          "typing:mono",
+          "type:grass"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:2",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          5,
+          16,
+          10,
+          4,
+          30,
+          5,
+          13,
+          69,
+          17
+        ],
+        "score": 2,
+        "attempts": 3,
+        "rejections": {
+          "too-many-very-hard-cells": 2
+        },
+        "frozenAt": "2026-10-01T20:47:15.129Z"
+      }
+    },
+    "3": {
+      "number": 3,
+      "date": "2026-10-03",
+      "payload": {
+        "rows": [
+          "evo:first-stage",
+          "form:gigantamax",
+          "type:fighting"
+        ],
+        "columns": [
+          "size:heavy",
+          "type:poison",
+          "gen:1"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:3",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          7,
+          31,
+          57,
+          11,
+          4,
+          12,
+          16,
+          4,
+          8
+        ],
+        "score": 2.111,
+        "attempts": 3,
+        "rejections": {
+          "draw-failed": 1,
+          "score-out-of-range": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.130Z"
+      }
+    },
+    "4": {
+      "number": 4,
+      "date": "2026-10-04",
+      "payload": {
+        "rows": [
+          "type:normal",
+          "type:dragon",
+          "gen:2"
+        ],
+        "columns": [
+          "stat:attack>=120",
+          "type:flying",
+          "form:mega"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:4",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          9,
+          27,
+          7,
+          16,
+          6,
+          12,
+          7,
+          19,
+          9
+        ],
+        "score": 2.222,
+        "attempts": 3,
+        "rejections": {
+          "too-many-very-easy-cells": 2
+        },
+        "frozenAt": "2026-10-01T20:47:15.132Z"
+      }
+    },
+    "5": {
+      "number": 5,
+      "date": "2026-10-05",
+      "payload": {
+        "rows": [
+          "gen:5",
+          "type:electric",
+          "type:ice"
+        ],
+        "columns": [
+          "stat:hp>=100",
+          "evo:final-stage",
+          "form:regional"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:5",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          20,
+          54,
+          9,
+          8,
+          19,
+          5,
+          10,
+          19,
+          3
+        ],
+        "score": 2.222,
+        "attempts": 2,
+        "rejections": {
+          "draw-failed": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.132Z"
+      }
+    },
+    "6": {
+      "number": 6,
+      "date": "2026-10-06",
+      "payload": {
+        "rows": [
+          "gen:6",
+          "type:steel",
+          "stat:total>=500"
+        ],
+        "columns": [
+          "type:psychic",
+          "type:fairy",
+          "type:dark"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:6",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          6,
+          13,
+          5,
+          8,
+          6,
+          3,
+          41,
+          22,
+          30
+        ],
+        "score": 2.222,
+        "attempts": 9,
+        "rejections": {
+          "score-out-of-range": 1,
+          "draw-failed": 5,
+          "too-few-normal-or-easy-cells": 1,
+          "too-many-very-easy-cells": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.134Z"
+      }
+    },
+    "7": {
+      "number": 7,
+      "date": "2026-10-07",
+      "payload": {
+        "rows": [
+          "stat:speed>=100",
+          "flag:fossil",
+          "type:fire"
+        ],
+        "columns": [
+          "gen:4",
+          "evo:first-stage",
+          "gen:1"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:7",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          17,
+          3,
+          24,
+          4,
+          10,
+          5,
+          5,
+          24,
+          12
+        ],
+        "score": 2.333,
+        "attempts": 35,
+        "rejections": {
+          "draw-failed": 27,
+          "too-many-very-easy-cells": 7
+        },
+        "frozenAt": "2026-10-01T20:47:15.137Z"
+      }
+    },
+    "8": {
+      "number": 8,
+      "date": "2026-10-08",
+      "payload": {
+        "rows": [
+          "flag:mythical",
+          "size:tall",
+          "flag:starter"
+        ],
+        "columns": [
+          "type:water",
+          "form:mega",
+          "typing:dual"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:8",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          4,
+          4,
+          13,
+          19,
+          20,
+          78,
+          27,
+          12,
+          25
+        ],
+        "score": 1.778,
+        "attempts": 210,
+        "rejections": {
+          "draw-failed": 195,
+          "too-many-very-easy-cells": 13,
+          "too-many-very-hard-cells": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.152Z"
+      }
+    },
+    "9": {
+      "number": 9,
+      "date": "2026-10-09",
+      "payload": {
+        "rows": [
+          "type:bug",
+          "gen:5",
+          "evo:none"
+        ],
+        "columns": [
+          "type:rock",
+          "type:fighting",
+          "type:flying"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:9",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          6,
+          4,
+          13,
+          10,
+          15,
+          18,
+          16,
+          21,
+          27
+        ],
+        "score": 2,
+        "attempts": 41,
+        "rejections": {
+          "draw-failed": 33,
+          "score-out-of-range": 1,
+          "too-similar-to-recent-grid": 6
+        },
+        "frozenAt": "2026-10-01T20:47:15.155Z"
+      }
+    },
+    "10": {
+      "number": 10,
+      "date": "2026-10-10",
+      "payload": {
+        "rows": [
+          "gen:2",
+          "flag:legendary",
+          "type:electric"
+        ],
+        "columns": [
+          "typing:mono",
+          "stat:hp>=100",
+          "form:regional"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:10",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          51,
+          13,
+          6,
+          30,
+          29,
+          3,
+          35,
+          8,
+          5
+        ],
+        "score": 2,
+        "attempts": 22,
+        "rejections": {
+          "draw-failed": 14,
+          "too-similar-to-recent-grid": 6,
+          "score-out-of-range": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.156Z"
+      }
+    },
+    "11": {
+      "number": 11,
+      "date": "2026-10-11",
+      "payload": {
+        "rows": [
+          "size:heavy",
+          "type:grass",
+          "type:poison"
+        ],
+        "columns": [
+          "gen:3",
+          "type:ghost",
+          "gen:7"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:11",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          24,
+          10,
+          22,
+          17,
+          10,
+          13,
+          5,
+          4,
+          7
+        ],
+        "score": 2.111,
+        "attempts": 3,
+        "rejections": {
+          "draw-failed": 1,
+          "too-many-very-hard-cells": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.156Z"
+      }
+    },
+    "12": {
+      "number": 12,
+      "date": "2026-10-12",
+      "payload": {
+        "rows": [
+          "type:dragon",
+          "type:normal",
+          "flag:mythical"
+        ],
+        "columns": [
+          "size:small",
+          "gen:4",
+          "form:mega"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:12",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          9,
+          6,
+          12,
+          39,
+          17,
+          7,
+          9,
+          5,
+          4
+        ],
+        "score": 2.333,
+        "attempts": 1,
+        "rejections": {},
+        "frozenAt": "2026-10-01T20:47:15.156Z"
+      }
+    },
+    "13": {
+      "number": 13,
+      "date": "2026-10-13",
+      "payload": {
+        "rows": [
+          "type:ice",
+          "type:ground",
+          "type:steel"
+        ],
+        "columns": [
+          "stat:attack>=120",
+          "evo:final-stage",
+          "evo:none"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:13",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          8,
+          19,
+          12,
+          13,
+          33,
+          8,
+          13,
+          26,
+          18
+        ],
+        "score": 2,
+        "attempts": 8,
+        "rejections": {
+          "draw-failed": 5,
+          "too-many-very-easy-cells": 1,
+          "too-many-very-hard-cells": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.157Z"
+      }
+    },
+    "14": {
+      "number": 14,
+      "date": "2026-10-14",
+      "payload": {
+        "rows": [
+          "type:fairy",
+          "type:dark",
+          "type:flying"
+        ],
+        "columns": [
+          "evo:first-stage",
+          "gen:6",
+          "gen:2"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:14",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          17,
+          13,
+          8,
+          17,
+          5,
+          6,
+          32,
+          8,
+          19
+        ],
+        "score": 2.333,
+        "attempts": 1,
+        "rejections": {},
+        "frozenAt": "2026-10-01T20:47:15.157Z"
+      }
+    },
+    "15": {
+      "number": 15,
+      "date": "2026-10-15",
+      "payload": {
+        "rows": [
+          "form:gigantamax",
+          "stat:total>=500",
+          "type:fire"
+        ],
+        "columns": [
+          "gen:1",
+          "type:poison",
+          "flag:starter"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:15",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          12,
+          4,
+          6,
+          33,
+          22,
+          27,
+          12,
+          3,
+          27
+        ],
+        "score": 2,
+        "attempts": 3,
+        "rejections": {
+          "draw-failed": 2
+        },
+        "frozenAt": "2026-10-01T20:47:15.158Z"
+      }
+    },
+    "16": {
+      "number": 16,
+      "date": "2026-10-16",
+      "payload": {
+        "rows": [
+          "type:water",
+          "stat:speed>=100",
+          "flag:fossil"
+        ],
+        "columns": [
+          "gen:5",
+          "gen:4",
+          "type:dragon"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:16",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          17,
+          14,
+          5,
+          27,
+          17,
+          16,
+          4,
+          4,
+          4
+        ],
+        "score": 2.333,
+        "attempts": 4,
+        "rejections": {
+          "draw-failed": 2,
+          "score-out-of-range": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.158Z"
+      }
+    },
+    "17": {
+      "number": 17,
+      "date": "2026-10-17",
+      "payload": {
+        "rows": [
+          "type:psychic",
+          "type:bug",
+          "stat:hp>=100"
+        ],
+        "columns": [
+          "typing:mono",
+          "type:steel",
+          "type:rock"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:17",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          39,
+          8,
+          3,
+          23,
+          5,
+          6,
+          58,
+          7,
+          10
+        ],
+        "score": 2.222,
+        "attempts": 15,
+        "rejections": {
+          "draw-failed": 12,
+          "too-many-very-easy-cells": 2
+        },
+        "frozenAt": "2026-10-01T20:47:15.159Z"
+      }
+    },
+    "18": {
+      "number": 18,
+      "date": "2026-10-18",
+      "payload": {
+        "rows": [
+          "form:regional",
+          "type:fighting",
+          "type:electric"
+        ],
+        "columns": [
+          "typing:dual",
+          "flag:legendary",
+          "size:heavy"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:18",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          19,
+          3,
+          6,
+          45,
+          8,
+          16,
+          34,
+          7,
+          13
+        ],
+        "score": 2.222,
+        "attempts": 6,
+        "rejections": {
+          "draw-failed": 4,
+          "too-many-very-easy-cells": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.160Z"
+      }
+    },
+    "19": {
+      "number": 19,
+      "date": "2026-10-19",
+      "payload": {
+        "rows": [
+          "type:ghost",
+          "type:grass",
+          "gen:7"
+        ],
+        "columns": [
+          "size:tall",
+          "evo:final-stage",
+          "form:mega"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:19",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          10,
+          29,
+          6,
+          10,
+          49,
+          7,
+          18,
+          25,
+          5
+        ],
+        "score": 1.889,
+        "attempts": 4,
+        "rejections": {
+          "draw-failed": 2,
+          "too-many-very-easy-cells": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.160Z"
+      }
+    },
+    "20": {
+      "number": 20,
+      "date": "2026-10-20",
+      "payload": {
+        "rows": [
+          "type:normal",
+          "type:poison",
+          "gen:3"
+        ],
+        "columns": [
+          "size:small",
+          "evo:none",
+          "type:flying"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:20",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          39,
+          23,
+          27,
+          17,
+          8,
+          3,
+          29,
+          28,
+          12
+        ],
+        "score": 1.778,
+        "attempts": 2,
+        "rejections": {
+          "draw-failed": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.161Z"
+      }
+    },
+    "21": {
+      "number": 21,
+      "date": "2026-10-21",
+      "payload": {
+        "rows": [
+          "type:ice",
+          "flag:mythical",
+          "stat:attack>=120"
+        ],
+        "columns": [
+          "typing:mono",
+          "type:water",
+          "gen:4"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:21",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          16,
+          8,
+          6,
+          10,
+          4,
+          5,
+          43,
+          8,
+          16
+        ],
+        "score": 2.333,
+        "attempts": 8,
+        "rejections": {
+          "draw-failed": 6,
+          "too-many-very-easy-cells": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.161Z"
+      }
+    },
+    "22": {
+      "number": 22,
+      "date": "2026-10-22",
+      "payload": {
+        "rows": [
+          "evo:first-stage",
+          "type:ground",
+          "gen:2"
+        ],
+        "columns": [
+          "type:dark",
+          "type:rock",
+          "flag:starter"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:22",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          17,
+          25,
+          27,
+          4,
+          9,
+          3,
+          6,
+          7,
+          9
+        ],
+        "score": 2.333,
+        "attempts": 4,
+        "rejections": {
+          "draw-failed": 3
+        },
+        "frozenAt": "2026-10-01T20:47:15.162Z"
+      }
+    },
+    "23": {
+      "number": 23,
+      "date": "2026-10-23",
+      "payload": {
+        "rows": [
+          "type:steel",
+          "type:fire",
+          "gen:1"
+        ],
+        "columns": [
+          "stat:total>=500",
+          "form:mega",
+          "type:psychic"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:23",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          33,
+          10,
+          8,
+          33,
+          10,
+          3,
+          33,
+          18,
+          14
+        ],
+        "score": 2,
+        "attempts": 49,
+        "rejections": {
+          "draw-failed": 48
+        },
+        "frozenAt": "2026-10-01T20:47:15.163Z"
+      }
+    },
+    "24": {
+      "number": 24,
+      "date": "2026-10-24",
+      "payload": {
+        "rows": [
+          "type:fairy",
+          "flag:fossil",
+          "type:dragon"
+        ],
+        "columns": [
+          "gen:6",
+          "size:small",
+          "gen:3"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:24",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          13,
+          26,
+          5,
+          4,
+          4,
+          4,
+          9,
+          9,
+          9
+        ],
+        "score": 2.333,
+        "attempts": 22,
+        "rejections": {
+          "draw-failed": 17,
+          "too-many-very-hard-cells": 2,
+          "too-many-very-easy-cells": 2
+        },
+        "frozenAt": "2026-10-01T20:47:15.164Z"
+      }
+    },
+    "25": {
+      "number": 25,
+      "date": "2026-10-25",
+      "payload": {
+        "rows": [
+          "type:bug",
+          "form:gigantamax",
+          "type:ice"
+        ],
+        "columns": [
+          "stat:speed>=100",
+          "typing:dual",
+          "type:water"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:25",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          9,
+          69,
+          5,
+          4,
+          17,
+          5,
+          6,
+          32,
+          8
+        ],
+        "score": 2.222,
+        "attempts": 67,
+        "rejections": {
+          "draw-failed": 56,
+          "score-out-of-range": 4,
+          "too-similar-to-recent-grid": 1,
+          "too-many-very-easy-cells": 3,
+          "too-many-very-hard-cells": 2
+        },
+        "frozenAt": "2026-10-01T20:47:15.167Z"
+      }
+    },
+    "26": {
+      "number": 26,
+      "date": "2026-10-26",
+      "payload": {
+        "rows": [
+          "stat:hp>=100",
+          "type:dark",
+          "type:ghost"
+        ],
+        "columns": [
+          "type:grass",
+          "gen:5",
+          "evo:first-stage"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:26",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          11,
+          20,
+          5,
+          7,
+          16,
+          17,
+          10,
+          9,
+          19
+        ],
+        "score": 2.222,
+        "attempts": 21,
+        "rejections": {
+          "draw-failed": 14,
+          "score-out-of-range": 1,
+          "too-similar-to-recent-grid": 4,
+          "too-many-very-easy-cells": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.169Z"
+      }
+    },
+    "27": {
+      "number": 27,
+      "date": "2026-10-27",
+      "payload": {
+        "rows": [
+          "type:fighting",
+          "type:electric",
+          "gen:7"
+        ],
+        "columns": [
+          "evo:final-stage",
+          "flag:legendary",
+          "stat:attack>=120"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:27",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          29,
+          8,
+          30,
+          19,
+          7,
+          5,
+          25,
+          11,
+          17
+        ],
+        "score": 2,
+        "attempts": 3,
+        "rejections": {
+          "draw-failed": 2
+        },
+        "frozenAt": "2026-10-01T20:47:15.169Z"
+      }
+    },
+    "28": {
+      "number": 28,
+      "date": "2026-10-28",
+      "payload": {
+        "rows": [
+          "evo:none",
+          "size:heavy",
+          "type:poison"
+        ],
+        "columns": [
+          "form:mega",
+          "form:regional",
+          "type:flying"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:28",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          23,
+          5,
+          27,
+          24,
+          6,
+          11,
+          7,
+          4,
+          3
+        ],
+        "score": 2.333,
+        "attempts": 5,
+        "rejections": {
+          "draw-failed": 3,
+          "too-many-very-hard-cells": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.169Z"
+      }
+    },
+    "29": {
+      "number": 29,
+      "date": "2026-10-29",
+      "payload": {
+        "rows": [
+          "gen:4",
+          "size:tall",
+          "gen:6"
+        ],
+        "columns": [
+          "type:normal",
+          "type:steel",
+          "type:water"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:29",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          17,
+          10,
+          14,
+          11,
+          13,
+          19,
+          8,
+          4,
+          9
+        ],
+        "score": 2.222,
+        "attempts": 48,
+        "rejections": {
+          "draw-failed": 46,
+          "too-similar-to-recent-grid": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.171Z"
+      }
+    },
+    "30": {
+      "number": 30,
+      "date": "2026-10-30",
+      "payload": {
+        "rows": [
+          "flag:mythical",
+          "stat:hp>=100",
+          "type:ground"
+        ],
+        "columns": [
+          "type:ghost",
+          "typing:mono",
+          "gen:5"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:30",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          3,
+          10,
+          4,
+          8,
+          58,
+          20,
+          5,
+          17,
+          11
+        ],
+        "score": 2.333,
+        "attempts": 69,
+        "rejections": {
+          "draw-failed": 58,
+          "score-out-of-range": 1,
+          "too-many-very-easy-cells": 5,
+          "too-similar-to-recent-grid": 4
+        },
+        "frozenAt": "2026-10-01T20:47:15.174Z"
+      }
+    },
+    "31": {
+      "number": 31,
+      "date": "2026-10-31",
+      "payload": {
+        "rows": [
+          "type:fire",
+          "stat:total>=500",
+          "gen:2"
+        ],
+        "columns": [
+          "flag:starter",
+          "type:psychic",
+          "type:dark"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:31",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          27,
+          3,
+          4,
+          27,
+          41,
+          30,
+          9,
+          10,
+          6
+        ],
+        "score": 1.889,
+        "attempts": 17,
+        "rejections": {
+          "too-similar-to-recent-grid": 2,
+          "draw-failed": 12,
+          "score-out-of-range": 1,
+          "too-many-very-hard-cells": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.175Z"
+      }
+    },
+    "32": {
+      "number": 32,
+      "date": "2026-11-01",
+      "payload": {
+        "rows": [
+          "type:dragon",
+          "gen:1",
+          "type:rock"
+        ],
+        "columns": [
+          "size:small",
+          "evo:none",
+          "type:flying"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:32",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          9,
+          26,
+          6,
+          28,
+          11,
+          19,
+          15,
+          16,
+          4
+        ],
+        "score": 2,
+        "attempts": 11,
+        "rejections": {
+          "draw-failed": 9,
+          "too-similar-to-recent-grid": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.176Z"
+      }
+    },
+    "33": {
+      "number": 33,
+      "date": "2026-11-02",
+      "payload": {
+        "rows": [
+          "type:bug",
+          "stat:speed>=100",
+          "form:mega"
+        ],
+        "columns": [
+          "gen:6",
+          "gen:3",
+          "type:electric"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:33",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          3,
+          14,
+          4,
+          10,
+          12,
+          22,
+          12,
+          21,
+          5
+        ],
+        "score": 2.222,
+        "attempts": 13,
+        "rejections": {
+          "draw-failed": 11,
+          "too-many-very-easy-cells": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.176Z"
+      }
+    },
+    "34": {
+      "number": 34,
+      "date": "2026-11-03",
+      "payload": {
+        "rows": [
+          "form:gigantamax",
+          "type:fighting",
+          "evo:first-stage"
+        ],
+        "columns": [
+          "type:poison",
+          "size:heavy",
+          "type:water"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:34",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          4,
+          11,
+          5,
+          4,
+          16,
+          3,
+          31,
+          7,
+          58
+        ],
+        "score": 2.333,
+        "attempts": 29,
+        "rejections": {
+          "draw-failed": 21,
+          "too-many-very-easy-cells": 3,
+          "too-many-very-hard-cells": 1,
+          "too-similar-to-recent-grid": 2,
+          "too-few-normal-or-easy-cells": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.178Z"
+      }
+    },
+    "35": {
+      "number": 35,
+      "date": "2026-11-04",
+      "payload": {
+        "rows": [
+          "type:grass",
+          "flag:starter",
+          "type:dark"
+        ],
+        "columns": [
+          "stat:attack>=120",
+          "gen:2",
+          "evo:final-stage"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:35",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          10,
+          10,
+          49,
+          4,
+          9,
+          27,
+          17,
+          6,
+          31
+        ],
+        "score": 1.778,
+        "attempts": 3,
+        "rejections": {
+          "draw-failed": 2
+        },
+        "frozenAt": "2026-10-01T20:47:15.178Z"
+      }
+    },
+    "36": {
+      "number": 36,
+      "date": "2026-11-05",
+      "payload": {
+        "rows": [
+          "type:fairy",
+          "type:ice",
+          "form:regional"
+        ],
+        "columns": [
+          "typing:dual",
+          "flag:legendary",
+          "evo:none"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:36",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          43,
+          8,
+          19,
+          32,
+          5,
+          12,
+          19,
+          3,
+          5
+        ],
+        "score": 2.222,
+        "attempts": 13,
+        "rejections": {
+          "draw-failed": 10,
+          "too-many-very-easy-cells": 1,
+          "score-out-of-range": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.179Z"
+      }
+    },
+    "37": {
+      "number": 37,
+      "date": "2026-11-06",
+      "payload": {
+        "rows": [
+          "type:normal",
+          "size:tall",
+          "flag:fossil"
+        ],
+        "columns": [
+          "gen:1",
+          "gen:4",
+          "gen:3"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:37",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          22,
+          17,
+          18,
+          13,
+          13,
+          13,
+          5,
+          4,
+          4
+        ],
+        "score": 2.222,
+        "attempts": 5,
+        "rejections": {
+          "draw-failed": 3,
+          "too-similar-to-recent-grid": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.179Z"
+      }
+    },
+    "38": {
+      "number": 38,
+      "date": "2026-11-07",
+      "payload": {
+        "rows": [
+          "type:bug",
+          "type:ghost",
+          "form:mega"
+        ],
+        "columns": [
+          "gen:5",
+          "typing:mono",
+          "gen:7"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:38",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          18,
+          23,
+          11,
+          9,
+          16,
+          8,
+          8,
+          24,
+          5
+        ],
+        "score": 2.111,
+        "attempts": 64,
+        "rejections": {
+          "draw-failed": 40,
+          "too-similar-to-recent-grid": 15,
+          "too-many-very-easy-cells": 1,
+          "too-many-very-hard-cells": 5,
+          "score-out-of-range": 2
+        },
+        "frozenAt": "2026-10-01T20:47:15.182Z"
+      }
+    },
+    "39": {
+      "number": 39,
+      "date": "2026-11-08",
+      "payload": {
+        "rows": [
+          "type:steel",
+          "type:psychic",
+          "type:fire"
+        ],
+        "columns": [
+          "stat:hp>=100",
+          "evo:first-stage",
+          "gen:6"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:39",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          7,
+          14,
+          4,
+          17,
+          26,
+          6,
+          10,
+          24,
+          8
+        ],
+        "score": 2.222,
+        "attempts": 23,
+        "rejections": {
+          "draw-failed": 15,
+          "too-many-very-hard-cells": 4,
+          "too-similar-to-recent-grid": 2,
+          "score-out-of-range": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.184Z"
+      }
+    },
+    "40": {
+      "number": 40,
+      "date": "2026-11-09",
+      "payload": {
+        "rows": [
+          "type:flying",
+          "stat:total>=500",
+          "type:rock"
+        ],
+        "columns": [
+          "evo:none",
+          "type:ground",
+          "gen:2"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:40",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          27,
+          3,
+          19,
+          126,
+          27,
+          25,
+          16,
+          9,
+          7
+        ],
+        "score": 1.778,
+        "attempts": 1,
+        "rejections": {},
+        "frozenAt": "2026-10-01T20:47:15.184Z"
+      }
+    },
+    "41": {
+      "number": 41,
+      "date": "2026-11-10",
+      "payload": {
+        "rows": [
+          "type:electric",
+          "size:small",
+          "type:dragon"
+        ],
+        "columns": [
+          "gen:1",
+          "gen:3",
+          "gen:4"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:41",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          9,
+          4,
+          7,
+          28,
+          29,
+          32,
+          3,
+          9,
+          6
+        ],
+        "score": 2.222,
+        "attempts": 33,
+        "rejections": {
+          "draw-failed": 29,
+          "too-similar-to-recent-grid": 2,
+          "too-many-very-hard-cells": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.185Z"
+      }
+    },
+    "42": {
+      "number": 42,
+      "date": "2026-11-11",
+      "payload": {
+        "rows": [
+          "type:poison",
+          "size:heavy",
+          "form:regional"
+        ],
+        "columns": [
+          "type:water",
+          "gen:5",
+          "evo:final-stage"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:42",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          6,
+          7,
+          34,
+          22,
+          20,
+          88,
+          7,
+          9,
+          25
+        ],
+        "score": 1.778,
+        "attempts": 4,
+        "rejections": {
+          "draw-failed": 1,
+          "too-similar-to-recent-grid": 1,
+          "too-many-very-easy-cells": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.185Z"
+      }
+    },
+    "43": {
+      "number": 43,
+      "date": "2026-11-12",
+      "payload": {
+        "rows": [
+          "stat:speed>=100",
+          "type:fairy",
+          "type:fighting"
+        ],
+        "columns": [
+          "form:mega",
+          "type:grass",
+          "gen:7"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:43",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          25,
+          14,
+          12,
+          6,
+          5,
+          12,
+          11,
+          3,
+          10
+        ],
+        "score": 2.333,
+        "attempts": 31,
+        "rejections": {
+          "draw-failed": 23,
+          "too-many-very-easy-cells": 3,
+          "too-many-very-hard-cells": 4
+        },
+        "frozenAt": "2026-10-01T20:47:15.187Z"
+      }
+    },
+    "44": {
+      "number": 44,
+      "date": "2026-11-13",
+      "payload": {
+        "rows": [
+          "flag:mythical",
+          "flag:legendary",
+          "type:dark"
+        ],
+        "columns": [
+          "stat:attack>=120",
+          "typing:mono",
+          "type:steel"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:44",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          6,
+          10,
+          5,
+          24,
+          30,
+          5,
+          17,
+          13,
+          3
+        ],
+        "score": 2.333,
+        "attempts": 3,
+        "rejections": {
+          "draw-failed": 2
+        },
+        "frozenAt": "2026-10-01T20:47:15.187Z"
+      }
+    },
+    "45": {
+      "number": 45,
+      "date": "2026-11-14",
+      "payload": {
+        "rows": [
+          "form:gigantamax",
+          "flag:starter",
+          "type:ice"
+        ],
+        "columns": [
+          "typing:dual",
+          "size:tall",
+          "gen:1"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:45",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          17,
+          11,
+          12,
+          25,
+          5,
+          9,
+          32,
+          12,
+          5
+        ],
+        "score": 2,
+        "attempts": 1,
+        "rejections": {},
+        "frozenAt": "2026-10-01T20:47:15.187Z"
+      }
+    },
+    "46": {
+      "number": 46,
+      "date": "2026-11-15",
+      "payload": {
+        "rows": [
+          "gen:5",
+          "type:bug",
+          "type:ghost"
+        ],
+        "columns": [
+          "evo:none",
+          "type:fire",
+          "evo:first-stage"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:46",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          26,
+          15,
+          56,
+          10,
+          4,
+          35,
+          12,
+          6,
+          19
+        ],
+        "score": 1.778,
+        "attempts": 2,
+        "rejections": {
+          "draw-failed": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.187Z"
+      }
+    },
+    "47": {
+      "number": 47,
+      "date": "2026-11-16",
+      "payload": {
+        "rows": [
+          "gen:6",
+          "stat:hp>=100",
+          "flag:fossil"
+        ],
+        "columns": [
+          "type:flying",
+          "evo:final-stage",
+          "type:water"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:47",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          8,
+          27,
+          9,
+          9,
+          71,
+          20,
+          3,
+          10,
+          8
+        ],
+        "score": 2.111,
+        "attempts": 5,
+        "rejections": {
+          "draw-failed": 3,
+          "too-similar-to-recent-grid": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.188Z"
+      }
+    },
+    "48": {
+      "number": 48,
+      "date": "2026-11-17",
+      "payload": {
+        "rows": [
+          "type:ground",
+          "type:dragon",
+          "type:rock"
+        ],
+        "columns": [
+          "gen:3",
+          "stat:total>=500",
+          "gen:7"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:48",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          13,
+          27,
+          4,
+          9,
+          39,
+          7,
+          12,
+          23,
+          5
+        ],
+        "score": 2,
+        "attempts": 6,
+        "rejections": {
+          "draw-failed": 5
+        },
+        "frozenAt": "2026-10-01T20:47:15.188Z"
+      }
+    },
+    "49": {
+      "number": 49,
+      "date": "2026-11-18",
+      "payload": {
+        "rows": [
+          "type:psychic",
+          "type:normal",
+          "gen:2"
+        ],
+        "columns": [
+          "size:small",
+          "type:fairy",
+          "form:regional"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:49",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          28,
+          8,
+          5,
+          39,
+          4,
+          9,
+          19,
+          8,
+          6
+        ],
+        "score": 2.333,
+        "attempts": 1,
+        "rejections": {},
+        "frozenAt": "2026-10-01T20:47:15.188Z"
+      }
+    },
+    "50": {
+      "number": 50,
+      "date": "2026-11-19",
+      "payload": {
+        "rows": [
+          "type:poison",
+          "type:electric",
+          "evo:none"
+        ],
+        "columns": [
+          "size:heavy",
+          "gen:4",
+          "gen:5"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:50",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          7,
+          8,
+          7,
+          13,
+          7,
+          11,
+          73,
+          17,
+          26
+        ],
+        "score": 2.111,
+        "attempts": 17,
+        "rejections": {
+          "draw-failed": 14,
+          "too-many-very-easy-cells": 2
+        },
+        "frozenAt": "2026-10-01T20:47:15.189Z"
+      }
+    },
+    "51": {
+      "number": 51,
+      "date": "2026-11-20",
+      "payload": {
+        "rows": [
+          "type:fighting",
+          "stat:speed>=100",
+          "flag:fossil"
+        ],
+        "columns": [
+          "evo:final-stage",
+          "type:water",
+          "gen:1"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:51",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          29,
+          3,
+          8,
+          79,
+          14,
+          24,
+          10,
+          8,
+          5
+        ],
+        "score": 2.111,
+        "attempts": 10,
+        "rejections": {
+          "draw-failed": 7,
+          "too-similar-to-recent-grid": 2
+        },
+        "frozenAt": "2026-10-01T20:47:15.190Z"
+      }
+    },
+    "52": {
+      "number": 52,
+      "date": "2026-11-21",
+      "payload": {
+        "rows": [
+          "gen:3",
+          "form:mega",
+          "type:grass"
+        ],
+        "columns": [
+          "stat:attack>=120",
+          "type:dark",
+          "flag:legendary"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:52",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          13,
+          10,
+          8,
+          21,
+          9,
+          6,
+          10,
+          7,
+          5
+        ],
+        "score": 2.333,
+        "attempts": 39,
+        "rejections": {
+          "draw-failed": 31,
+          "too-similar-to-recent-grid": 5,
+          "too-many-very-hard-cells": 1,
+          "too-many-very-easy-cells": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.192Z"
+      }
+    },
+    "53": {
+      "number": 53,
+      "date": "2026-11-22",
+      "payload": {
+        "rows": [
+          "typing:mono",
+          "flag:starter",
+          "type:steel"
+        ],
+        "columns": [
+          "size:tall",
+          "gen:6",
+          "gen:7"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:53",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          51,
+          31,
+          33,
+          5,
+          9,
+          9,
+          13,
+          4,
+          8
+        ],
+        "score": 1.889,
+        "attempts": 1,
+        "rejections": {},
+        "frozenAt": "2026-10-01T20:47:15.192Z"
+      }
+    },
+    "54": {
+      "number": 54,
+      "date": "2026-11-23",
+      "payload": {
+        "rows": [
+          "flag:mythical",
+          "evo:first-stage",
+          "type:ghost"
+        ],
+        "columns": [
+          "gen:4",
+          "size:heavy",
+          "gen:5"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:54",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          5,
+          3,
+          4,
+          34,
+          7,
+          56,
+          8,
+          10,
+          9
+        ],
+        "score": 2.333,
+        "attempts": 72,
+        "rejections": {
+          "draw-failed": 59,
+          "too-similar-to-recent-grid": 6,
+          "too-many-very-easy-cells": 3,
+          "too-many-very-hard-cells": 3
+        },
+        "frozenAt": "2026-10-01T20:47:15.195Z"
+      }
+    },
+    "55": {
+      "number": 55,
+      "date": "2026-11-24",
+      "payload": {
+        "rows": [
+          "type:flying",
+          "type:ice",
+          "type:dragon"
+        ],
+        "columns": [
+          "gen:1",
+          "stat:hp>=100",
+          "evo:final-stage"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:55",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          19,
+          9,
+          40,
+          5,
+          10,
+          19,
+          3,
+          19,
+          20
+        ],
+        "score": 2.222,
+        "attempts": 2,
+        "rejections": {
+          "draw-failed": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.195Z"
+      }
+    },
+    "56": {
+      "number": 56,
+      "date": "2026-11-25",
+      "payload": {
+        "rows": [
+          "type:electric",
+          "type:ground",
+          "type:bug"
+        ],
+        "columns": [
+          "stat:total>=500",
+          "gen:2",
+          "gen:3"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:56",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          23,
+          8,
+          4,
+          27,
+          10,
+          13,
+          17,
+          10,
+          14
+        ],
+        "score": 2,
+        "attempts": 39,
+        "rejections": {
+          "too-many-very-easy-cells": 5,
+          "too-similar-to-recent-grid": 1,
+          "draw-failed": 32
+        },
+        "frozenAt": "2026-10-01T20:47:15.197Z"
+      }
+    },
+    "57": {
+      "number": 57,
+      "date": "2026-11-26",
+      "payload": {
+        "rows": [
+          "type:normal",
+          "type:water",
+          "type:fire"
+        ],
+        "columns": [
+          "form:regional",
+          "size:small",
+          "gen:7"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:57",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          9,
+          39,
+          12,
+          7,
+          38,
+          13,
+          10,
+          12,
+          8
+        ],
+        "score": 2,
+        "attempts": 16,
+        "rejections": {
+          "draw-failed": 10,
+          "too-similar-to-recent-grid": 1,
+          "too-many-very-hard-cells": 3,
+          "too-many-very-easy-cells": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.198Z"
+      }
+    },
+    "58": {
+      "number": 58,
+      "date": "2026-11-27",
+      "payload": {
+        "rows": [
+          "type:psychic",
+          "type:poison",
+          "type:rock"
+        ],
+        "columns": [
+          "evo:none",
+          "evo:first-stage",
+          "size:tall"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:58",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          31,
+          26,
+          11,
+          8,
+          31,
+          8,
+          16,
+          25,
+          10
+        ],
+        "score": 1.778,
+        "attempts": 26,
+        "rejections": {
+          "draw-failed": 20,
+          "score-out-of-range": 1,
+          "too-many-very-easy-cells": 4
+        },
+        "frozenAt": "2026-10-01T20:47:15.200Z"
+      }
+    },
+    "59": {
+      "number": 59,
+      "date": "2026-11-28",
+      "payload": {
+        "rows": [
+          "stat:speed>=100",
+          "typing:mono",
+          "flag:fossil"
+        ],
+        "columns": [
+          "gen:1",
+          "type:ice",
+          "gen:6"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:59",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          24,
+          6,
+          10,
+          84,
+          16,
+          31,
+          5,
+          4,
+          4
+        ],
+        "score": 2,
+        "attempts": 43,
+        "rejections": {
+          "draw-failed": 35,
+          "too-similar-to-recent-grid": 2,
+          "too-many-very-easy-cells": 4,
+          "score-out-of-range": 1
+        },
+        "frozenAt": "2026-10-01T20:47:15.202Z"
+      }
+    },
+    "60": {
+      "number": 60,
+      "date": "2026-11-29",
+      "payload": {
+        "rows": [
+          "type:bug",
+          "type:fighting",
+          "type:grass"
+        ],
+        "columns": [
+          "form:mega",
+          "gen:2",
+          "evo:final-stage"
+        ],
+        "generatorVersion": "2.0.0",
+        "seed": "pokedaily:grid:v2.0.0:60",
+        "level": "balanced",
+        "fallbackStep": 0,
+        "dataset": {
+          "count": 1025,
+          "hash": "60ebc220"
+        },
+        "answerCounts": [
+          6,
+          10,
+          38,
+          11,
+          3,
+          29,
+          7,
+          10,
+          49
+        ],
+        "score": 2,
+        "attempts": 35,
+        "rejections": {
+          "draw-failed": 26,
+          "too-many-very-easy-cells": 4,
+          "too-similar-to-recent-grid": 4
+        },
+        "frozenAt": "2026-10-01T20:47:15.203Z"
+      }
+    }
+  }
+}
