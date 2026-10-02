@@ -10,6 +10,14 @@ const nextConfig: NextConfig = {
     // Pokémon sprites referenced by our dataset (PokéAPI sprite repository).
     remotePatterns: [new URL("https://raw.githubusercontent.com/PokeAPI/sprites/**")],
   },
+  experimental: {
+    // Turbopack's persistent build cache (.next/cache/turbopack) records the
+    // values of env vars read by server code — including GUESS_SECRET_KEY —
+    // and Netlify ships that cache (.netlify/.next/cache), where its secrets
+    // scanner rightly flags it. Disabling it keeps the secret out of every
+    // build artifact; the key is still read from the environment at runtime.
+    turbopackFileSystemCacheForBuild: false,
+  },
 };
 
 export default nextConfig;
