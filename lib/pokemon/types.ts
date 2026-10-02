@@ -48,6 +48,22 @@ export const REGIONS = [
 
 export type Region = (typeof REGIONS)[number];
 
+/** Official Pokédex colours (PokéAPI `pokemon-color`). */
+export const POKEMON_COLORS = [
+  "black",
+  "blue",
+  "brown",
+  "gray",
+  "green",
+  "pink",
+  "purple",
+  "red",
+  "white",
+  "yellow",
+] as const;
+
+export type PokemonColor = (typeof POKEMON_COLORS)[number];
+
 export interface PokemonAbility {
   slug: string;
   name: string;
@@ -116,6 +132,8 @@ export interface Pokemon {
   generation: number;
   region: Region;
   types: PokemonType[];
+  /** Official Pokédex colour of the species. */
+  color: PokemonColor;
   abilities: PokemonAbility[];
   stats: PokemonStats;
   /** Decimetres (PokéAPI unit). */

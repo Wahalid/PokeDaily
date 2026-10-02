@@ -106,6 +106,7 @@ export interface RawSpecies {
   is_legendary: boolean;
   is_mythical: boolean;
   is_baby: boolean;
+  color: NamedResource;
   evolves_from_species: NamedResource | null;
   evolution_chain: { url: string };
   varieties: Array<{ is_default: boolean; pokemon: NamedResource }>;

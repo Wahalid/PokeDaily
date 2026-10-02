@@ -11,17 +11,37 @@ import { loadSearchIndex } from "./search-index-client";
  * Reusable Pokémon autocomplete (name or Pokédex number).
  * Game-agnostic: the parent decides what selecting a Pokémon means.
  */
+export interface PokemonSearchLabels {
+  used: string;
+  loading: string;
+  failed: string;
+  empty: string;
+  noResults: string;
+}
+
+const DEFAULT_LABELS: PokemonSearchLabels = {
+  used: "Used",
+  loading: "Loading Pokédex…",
+  failed: "Couldn't load the Pokédex. Check your connection and reopen.",
+  empty: "Type a name or a Pokédex number.",
+  noResults: "No Pokémon found.",
+};
+
 export function PokemonSearch({
   onSelect,
   usedIds = [],
   disabled = false,
   placeholder = "Search Pokémon...",
+  labels: customLabels,
 }: {
   onSelect: (pokemon: PokemonSummary) => void;
   usedIds?: readonly number[];
   disabled?: boolean;
   placeholder?: string;
+  /** Optional UI copy overrides (e.g. for a Spanish-language game). */
+  labels?: Partial<PokemonSearchLabels>;
 }) {
+  const labels = { ...DEFAULT_LABELS, ...customLabels };
   const listId = useId();
   const [index, setIndex] = useState<PokemonSearchIndex | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -102,24 +122,42 @@ export function PokemonSearch({
             >
               <PokemonSprite src={p.sprite} name={p.name} size={44} className="shrink-0" />
               <span className="flex-1 truncate font-medium text-white">{p.name}</span>
-              {used && <span className="text-[11px] font-semibold text-mist-dim uppercase">Used</span>}
+              {used && <span className="text-[11px] font-semibold text-mist-dim uppercase">{labels.used}</span>}
               <span className="font-mono text-xs text-mist-dim tabular-nums">{formatDexNumber(p.dexNumber)}</span>
             </li>
           );
         })}
       </ul>
 
-      <SearchHint loading={!index && !loadFailed} failed={loadFailed} query={query} empty={results.length === 0} />
+      <SearchHint
+        loading={!index && !loadFailed}
+        failed={loadFailed}
+        query={query}
+        empty={results.length === 0}
+        labels={labels}
+      />
     </div>
   );
 }
 
-function SearchHint({ loading, failed, query, empty }: { loading: boolean; failed: boolean; query: string; empty: boolean }) {
+function SearchHint({
+  loading,
+  failed,
+  query,
+  empty,
+  labels,
+}: {
+  loading: boolean;
+  failed: boolean;
+  query: string;
+  empty: boolean;
+  labels: PokemonSearchLabels;
+}) {
   let text: string | null = null;
-  if (failed) text = "Couldn't load the Pokédex. Check your connection and reopen.";
-  else if (loading) text = "Loading Pokédex…";
-  else if (!query.trim()) text = "Type a name or a Pokédex number.";
-  else if (empty) text = "No Pokémon found.";
+  if (failed) text = labels.failed;
+  else if (loading) text = labels.loading;
+  else if (!query.trim()) text = labels.empty;
+  else if (empty) text = labels.noResults;
   return text ? <p className="px-2 py-6 text-center text-sm text-mist-dim">{text}</p> : null;
 }
 

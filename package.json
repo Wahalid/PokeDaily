@@ -11,7 +11,8 @@
     "update:pokemon": "tsx scripts/update-pokemon.ts",
     "grid:preview": "tsx scripts/grid-preview.ts",
     "verify": "tsx scripts/verify.ts",
-    "grid:freeze": "tsx scripts/freeze-grids.ts"
+    "grid:freeze": "tsx scripts/freeze-grids.ts",
+    "guess:freeze": "tsx scripts/freeze-guess.ts"
   },
   "dependencies": {
     "next": "16.3.8",

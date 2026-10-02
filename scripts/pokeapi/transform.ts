@@ -5,13 +5,14 @@
 import type {
   Pokemon,
   PokemonEvolution,
+  PokemonColor,
   PokemonForm,
   PokemonFormKind,
   PokemonStats,
   PokemonType,
   Region,
 } from "../../lib/pokemon/types";
-import { POKEMON_TYPES } from "../../lib/pokemon/types";
+import { POKEMON_COLORS, POKEMON_TYPES } from "../../lib/pokemon/types";
 import {
   idFromUrl,
   type RawChainLink,
@@ -56,6 +57,14 @@ function toTypes(raw: RawPokemon): PokemonType[] {
     .sort((a, b) => a.slot - b.slot)
     .map((t) => t.type.name)
     .filter((t): t is PokemonType => (POKEMON_TYPES as readonly string[]).includes(t));
+}
+
+function toColor(species: RawSpecies): PokemonColor {
+  const color = species.color?.name;
+  if (!(POKEMON_COLORS as readonly string[]).includes(color)) {
+    throw new Error(`Unknown Pokédex colour "${color}" for ${species.name}`);
+  }
+  return color as PokemonColor;
 }
 
 function toStats(raw: RawPokemon): PokemonStats {
@@ -161,6 +170,7 @@ export function toPokemon(
     generation,
     region: REGION_BY_GENERATION[generation - 1] as Region,
     types: toTypes(raw),
+    color: toColor(species),
     abilities: [...raw.abilities]
       .sort((a, b) => a.slot - b.slot)
       .map((a) => ({ slug: a.ability.name, name: titleCase(a.ability.name), isHidden: a.is_hidden })),

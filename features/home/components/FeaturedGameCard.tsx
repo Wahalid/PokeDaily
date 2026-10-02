@@ -31,9 +31,38 @@ export function FeaturedGameCard({ game, challengeLabel }: { game: GameInfo; cha
           </span>
         </div>
 
-        <MiniBoard />
+        {game.id === "guess" ? <MiniClues /> : <MiniBoard />}
       </div>
     </Link>
+  );
+}
+
+/** Decorative feedback rows for "Adivina el Pokémon" (no real answers). */
+function MiniClues() {
+  const rows = [
+    ["bg-ember-500", "bg-emerald-400", "bg-ember-500", "bg-sun-400", "bg-ember-500"],
+    ["bg-emerald-400", "bg-emerald-400", "bg-ember-500", "bg-emerald-400", "bg-sun-400"],
+    ["bg-emerald-400", "bg-emerald-400", "bg-emerald-400", "bg-emerald-400", "bg-emerald-400"],
+  ];
+  return (
+    <div aria-hidden className="hidden shrink-0 flex-col gap-2 sm:flex">
+      {rows.map((row, r) => (
+        <div key={r} className="flex items-center gap-1.5">
+          <span className="grid size-10 place-items-center rounded-xl border border-white/10 bg-night-950/50 text-sm font-bold text-white/30">
+            ?
+          </span>
+          {row.map((color, i) => (
+            <span
+              key={i}
+              className="grid size-10 place-items-center rounded-lg border border-white/10 bg-night-950/50 transition group-hover:border-white/20"
+              style={{ transitionDelay: `${(r * 5 + i) * 20}ms` }}
+            >
+              <span className={`size-3 rounded-full ${color} opacity-80`} />
+            </span>
+          ))}
+        </div>
+      ))}
+    </div>
   );
 }
 

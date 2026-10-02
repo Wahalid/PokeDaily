@@ -13,7 +13,13 @@ import { GENERATOR_VERSION, generateGrid, generateGridSafe, gridConditionIds, SA
 import { assessGrid, isKnowledgeHeavyCondition, isViableCell, prepareQualityData } from "../lib/grid/quality";
 import { gridKey } from "../lib/grid/types";
 import { buildSearchIndex, searchPokemon } from "../lib/pokemon/search";
-import { loadChallengeFile, loadPokedex } from "./lib/load-data";
+import { POKEMON_COLORS } from "../lib/pokemon/types";
+import { compareGuess, evolutionPhase } from "../lib/guess/compare";
+import { GUESS_VERSION, guessOrder, isGuessable, pickDailyGuess, resolveDailyGuess, type FrozenGuess } from "../lib/guess/daily";
+import { decryptAnswer, encryptAnswer, generateGuessKey, GUESS_KEY_ENV, parseGuessKey, secretOrderSeed } from "../lib/guess/secret";
+import { playGuessTurn } from "../lib/guess/play";
+import { MAX_GUESSES } from "../lib/guess/types";
+import { loadChallengeFile, loadGuessKey, loadPokedex } from "./lib/load-data";
 
 let passed = 0;
 function check(name: string, fn: () => void) {
@@ -195,6 +201,116 @@ check("calendar: Oct 1 2026 → #1, Oct 2 → #2", () => {
   assert.equal(dateForChallengeNumber(32), "2026-11-01");
   assert.equal(formatDisplayDate("2026-10-01"), "October 1, 2026");
 });
+
+console.log("Adivina el Pokémon");
+check("every Pokémon has an official Pokédex colour; only regular species are guessable", () => {
+  for (const p of pokedex.all) assert.ok((POKEMON_COLORS as readonly string[]).includes(p.color), `${p.name} colour`);
+  assert.equal(byName("Charizard").color, "red");
+  assert.equal(byName("Pikachu").color, "yellow");
+  const pool = pokedex.all.filter(isGuessable);
+  assert.equal(pool.length, 1025);
+  assert.ok(pool.every((p) => p.id === p.dexNumber && p.id <= 1025));
+  // Forms live inside their species — they are never separate candidates or search results.
+  const formSlugs = new Set(pokedex.all.flatMap((p) => p.forms.map((f) => f.slug)));
+  assert.ok(pool.every((p) => !formSlugs.has(p.slug)), "a form slipped into the pool");
+  assert.ok(pokedex.summaries().every((s) => s.id === s.dexNumber), "search index must only list species");
+  assert.ok(!pokedex.summaries().some((s) => /^(Mega|Gigantamax|Alolan|Galarian|Hisuian|Paldean) /.test(s.name)));
+});
+check("evolution phases (none / first / second / third)", () => {
+  assert.equal(evolutionPhase(byName("Charmander")), "first");
+  assert.equal(evolutionPhase(byName("Charmeleon")), "second");
+  assert.equal(evolutionPhase(byName("Charizard")), "third");
+  assert.equal(evolutionPhase(byName("Tauros")), "none");
+  assert.equal(evolutionPhase(byName("Pichu")), "first");
+  assert.equal(evolutionPhase(byName("Pikachu")), "second");
+  const f = compareGuess(byName("Charmeleon"), byName("Wartortle"));
+  assert.ok(f.phase.match && f.phase.value === "second");
+  assert.equal(compareGuess(byName("Charmander"), byName("Charizard")).phase.match, false);
+});
+check("types compare order-independently (swapped and partial)", () => {
+  const target = byName("Charizard"); // fire / flying
+  const swapped = compareGuess(byName("Talonflame"), target); // fire / flying
+  assert.ok(swapped.types.every((t) => t.match), "both types should match");
+  const reversed = compareGuess({ ...byName("Talonflame"), types: ["flying", "fire"] }, target);
+  assert.deepEqual(reversed.types, [{ type: "flying", match: true }, { type: "fire", match: true }]);
+  const partial = compareGuess(byName("Hawlucha"), target); // fighting / flying
+  assert.deepEqual(partial.types, [{ type: "fighting", match: false }, { type: "flying", match: true }]);
+});
+check("generation, colour and Pokédex ⬆️/⬇️ feedback", () => {
+  const target = byName("Charizard"); // #6, gen 1, red
+  const lower = compareGuess(byName("Bulbasaur"), target); // #1
+  assert.equal(lower.dex.direction, "higher", "secret #6 is higher than #1 → ⬆️");
+  const higher = compareGuess(byName("Mew"), target); // #151
+  assert.equal(higher.dex.direction, "lower", "secret #6 is lower than #151 → ⬇️");
+  assert.equal(compareGuess(target, target).dex.direction, "match");
+  assert.ok(lower.generation.match && !compareGuess(byName("Chikorita"), target).generation.match);
+  assert.ok(compareGuess(byName("Magmar"), target).color.match, "Magmar is red too");
+  assert.equal(compareGuess(byName("Pikachu"), target).color.match, false);
+  assert.ok(compareGuess(target, target).correct);
+});
+check("8-attempt limit, duplicates, and the secret is only revealed when the game ends", () => {
+  const secretId = byName("Charizard").id;
+  const wrong = ["Bulbasaur", "Squirtle", "Pikachu", "Mew", "Eevee", "Snorlax", "Gengar", "Lapras", "Ditto"].map((n) => byName(n).id);
+  for (let k = 1; k <= 7; k++) {
+    const r = playGuessTurn({ guessIds: wrong.slice(0, k), secretId, pokedex });
+    assert.ok(r.ok && !r.finished && r.answer === undefined, `turn ${k} must not reveal the answer`);
+  }
+  const eighth = playGuessTurn({ guessIds: wrong.slice(0, 8), secretId, pokedex });
+  assert.ok(eighth.ok && eighth.finished && eighth.answer?.id === secretId, "8th miss ends the game and reveals");
+  assert.equal(playGuessTurn({ guessIds: wrong.slice(0, 9), secretId, pokedex }).ok, false, "no 9th attempt");
+  assert.equal(playGuessTurn({ guessIds: [wrong[0], wrong[0]], secretId, pokedex }).ok, false, "no duplicates");
+  const win = playGuessTurn({ guessIds: [wrong[0], wrong[1], secretId], secretId, pokedex });
+  assert.ok(win.ok && win.finished && win.feedback.correct && win.answer?.id === secretId);
+  assert.equal(playGuessTurn({ guessIds: [secretId, wrong[0]], secretId, pokedex }).ok, false, "no guesses after winning");
+  assert.equal(MAX_GUESSES, 8);
+});
+check("secrets: frozen answers are encrypted, bound to their day, and useless without the key", () => {
+  const key = parseGuessKey(generateGuessKey())!;
+  const other = parseGuessKey(generateGuessKey())!;
+  const enc = encryptAnswer(80, 2, key);
+  assert.equal(decryptAnswer(enc, 2, key), 80);
+  assert.equal(decryptAnswer(enc, 3, key), null, "ciphertext must not be movable to another day");
+  assert.equal(decryptAnswer(enc, 2, other), null, "wrong key must not decrypt");
+  assert.equal(decryptAnswer({ ...enc, data: enc.data.replace(/^./, (c) => (c === "A" ? "B" : "A")) }, 2, key), null, "tampering detected");
+  assert.equal(encryptAnswer(1, 1, key).data.length, encryptAnswer(1025, 1, key).data.length, "length must not leak digits");
+  // The public file must not contain any plain answer field.
+  const raw = JSON.stringify(loadChallengeFile().guess ?? {});
+  assert.ok(!/pokemonId|"id"\s*:/.test(raw), "plain answer found in data/daily-challenges.json");
+  // Without a key the game is unavailable — it never falls back to a public/guessable answer.
+  const noKey = resolveDailyGuess(2, { pokemon: pokedex.all, store: createJsonChallengeStore(loadChallengeFile()), key: null });
+  assert.equal(noKey.source, "unavailable");
+  assert.equal(noKey.pokemonId, null);
+  const wrongKey = resolveDailyGuess(2, { pokemon: pokedex.all, store: createJsonChallengeStore(loadChallengeFile()), key: other });
+  assert.equal(wrongKey.pokemonId, null, "a wrong key must not silently change a frozen answer");
+  // The order for non-frozen days depends on the secret key.
+  assert.notDeepEqual(guessOrder(pokedex.all, secretOrderSeed(key, GUESS_VERSION)), guessOrder(pokedex.all, secretOrderSeed(other, GUESS_VERSION)));
+});
+const guessKey = loadGuessKey();
+if (!guessKey) {
+  console.log(`  ⚠ ${GUESS_KEY_ENV} not set (.env.local) — skipping checks that need the real daily answers`);
+} else {
+  check("daily secret is deterministic, frozen and never repeats", () => {
+    const frozen = Object.values(loadChallengeFile().guess ?? {}) as StoredChallenge<FrozenGuess>[];
+    assert.ok(frozen.length >= 60, `expected ≥60 frozen secrets, found ${frozen.length}`);
+    const store = createJsonChallengeStore(loadChallengeFile());
+    const ids: number[] = [];
+    for (const { number, date, payload } of frozen) {
+      assert.equal(date, dateForChallengeNumber(number));
+      const a = resolveDailyGuess(number, { pokemon: pokedex.all, store, key: guessKey });
+      const b = resolveDailyGuess(number, { pokemon: pokedex.all, store, key: guessKey });
+      assert.ok(a.source === "frozen" && a.pokemonId !== null && a.pokemonId === b.pokemonId, `#${number}`);
+      assert.equal(a.progressKey, payload.salt);
+      assert.ok(isGuessable(pokedex.getById(a.pokemonId)!), `#${number} must be a regular species`);
+      ids.push(a.pokemonId);
+    }
+    assert.equal(new Set(ids).size, ids.length, "no repeated secret");
+    const order = guessOrder(pokedex.all, secretOrderSeed(guessKey, GUESS_VERSION));
+    assert.equal(new Set(order).size, 1025, "order must be a permutation of all species");
+    const unfrozen = resolveDailyGuess(9999, { pokemon: pokedex.all, store: createJsonChallengeStore({}), key: guessKey });
+    assert.equal(unfrozen.source, "generated");
+    assert.equal(unfrozen.pokemonId, pickDailyGuess(9999, order));
+  });
+}
 
 console.log("Share");
 check("share text is spoiler-free and well-formed", () => {
