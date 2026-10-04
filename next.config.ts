@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
     // Pokémon sprites referenced by our dataset (PokéAPI sprite repository).
     remotePatterns: [new URL("https://raw.githubusercontent.com/PokeAPI/sprites/**")],
   },
+  // PokéCry reads its prepared (encrypted) cries from disk at runtime.
+  outputFileTracingIncludes: {
+    "/api/cry/**": ["./data/cries/**/*"],
+  },
   experimental: {
     // Turbopack's persistent build cache (.next/cache/turbopack) records the
     // values of env vars read by server code — including GUESS_SECRET_KEY —

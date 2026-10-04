@@ -31,9 +31,166 @@ export function FeaturedGameCard({ game, challengeLabel }: { game: GameInfo; cha
           </span>
         </div>
 
-        {game.id === "guess" ? <MiniClues /> : <MiniBoard />}
+        {game.id === "guess" ? (
+          <MiniClues />
+        ) : game.id === "connections" ? (
+          <MiniQuartets />
+        ) : game.id === "bingo" ? (
+          <MiniBingo />
+        ) : game.id === "top10" ? (
+          <MiniTop10 />
+        ) : game.id === "wordle" ? (
+          <MiniWordle />
+        ) : game.id === "impostor" ? (
+          <MiniImpostor />
+        ) : game.id === "cry" ? (
+          <MiniCry />
+        ) : (
+          <MiniBoard />
+        )}
       </div>
     </Link>
+  );
+}
+
+/** Decorative cry player: a play button, a waveform and four options (no real answers). */
+function MiniCry() {
+  const bars = [6, 14, 22, 12, 28, 18, 10, 24, 16, 8, 20, 12];
+  return (
+    <div aria-hidden className="hidden w-52 shrink-0 flex-col items-center gap-2 sm:flex">
+      <div className="flex w-full items-center gap-2 rounded-xl border border-white/10 bg-night-950/50 px-2 py-2">
+        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-sun-400 text-sm text-night-950">▶</span>
+        <div className="flex h-8 flex-1 items-center gap-0.5">
+          {bars.map((h, i) => (
+            <span key={i} className="flex-1 rounded-full bg-brand-300/60 transition group-hover:bg-brand-300" style={{ height: h, transitionDelay: `${i * 20}ms` }} />
+          ))}
+        </div>
+      </div>
+      <div className="grid w-full grid-cols-2 gap-1.5">
+        {[0, 1, 2, 3].map((i) => (
+          <span
+            key={i}
+            className={`h-9 rounded-lg border-2 ${i === 2 ? "border-emerald-400/60 bg-emerald-500/15" : "border-white/10 bg-night-950/50"} transition group-hover:border-white/25`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Decorative PokéImpostor board: a few picked cards and one impostor (no real answers). */
+function MiniImpostor() {
+  const picked = new Set([0, 2, 3, 6]);
+  return (
+    <div aria-hidden className="hidden shrink-0 grid-cols-4 gap-1.5 sm:grid">
+      {Array.from({ length: 8 }, (_, i) => (
+        <span
+          key={i}
+          className={`grid size-12 place-items-center rounded-xl border-2 transition group-hover:border-white/25 ${
+            i === 5 ? "border-ember-500/70 bg-ember-500/15" : picked.has(i) ? "border-sun-400/70 bg-sun-400/10" : "border-white/10 bg-night-950/50"
+          }`}
+          style={{ transitionDelay: `${i * 20}ms` }}
+        >
+          <span className={`text-sm font-black ${i === 5 ? "text-ember-300" : picked.has(i) ? "text-sun-300" : "text-white/20"}`}>
+            {i === 5 ? "!" : picked.has(i) ? "✓" : "?"}
+          </span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** Decorative Wordle rows (no real answers). */
+function MiniWordle() {
+  const rows = [
+    ["bg-slate-600/80", "bg-sun-400/80", "bg-slate-600/80", "bg-slate-600/80", "bg-emerald-500/80"],
+    ["bg-emerald-500/80", "bg-slate-600/80", "bg-sun-400/80", "bg-emerald-500/80", "bg-emerald-500/80"],
+    ["bg-emerald-500/80", "bg-emerald-500/80", "bg-emerald-500/80", "bg-emerald-500/80", "bg-emerald-500/80"],
+  ];
+  return (
+    <div aria-hidden className="hidden shrink-0 flex-col gap-1.5 sm:flex">
+      {rows.map((row, r) => (
+        <div key={r} className="flex gap-1.5">
+          {row.map((color, i) => (
+            <span
+              key={i}
+              className={`size-10 rounded-lg border border-white/10 ${color} transition group-hover:border-white/25`}
+              style={{ transitionDelay: `${(r * 5 + i) * 20}ms` }}
+            />
+          ))}
+        </div>
+      ))}
+      <div className="flex gap-1.5">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <span key={i} className="size-10 rounded-lg border border-dashed border-white/15 bg-night-950/50" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Decorative ranking with a few discovered positions (no real answers). */
+function MiniTop10() {
+  const discovered = new Set([1, 3, 4]);
+  return (
+    <div aria-hidden className="hidden w-52 shrink-0 flex-col gap-1 sm:flex">
+      {[1, 2, 3, 4, 5].map((pos) => (
+        <div
+          key={pos}
+          className={`flex h-8 items-center gap-2 rounded-lg border px-2 transition group-hover:border-white/20 ${
+            discovered.has(pos) ? "border-emerald-400/50 bg-emerald-500/15" : "border-dashed border-white/15 bg-night-950/50"
+          }`}
+          style={{ transitionDelay: `${pos * 25}ms` }}
+        >
+          <span className={`grid size-5 place-items-center rounded-full text-[10px] font-black ${pos === 1 ? "bg-sun-400 text-night-950" : "bg-night-600 text-mist"}`}>
+            {pos}
+          </span>
+          {discovered.has(pos) ? <span className="h-2 flex-1 rounded-full bg-emerald-400/50" /> : <span className="text-xs text-white/25">?</span>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Decorative bingo card with a few marked squares (no real answers). */
+function MiniBingo() {
+  const marked = new Set([0, 5, 6, 10, 13]);
+  return (
+    <div aria-hidden className="hidden shrink-0 grid-cols-4 gap-1.5 sm:grid">
+      {Array.from({ length: 16 }, (_, i) => (
+        <span
+          key={i}
+          className={`grid size-12 place-items-center rounded-lg border transition group-hover:border-white/20 ${
+            marked.has(i) ? "border-emerald-400/50 bg-emerald-500/15" : "border-dashed border-white/15 bg-night-950/50"
+          }`}
+          style={{ transitionDelay: `${i * 20}ms` }}
+        >
+          {marked.has(i) && <span className="size-3 rounded-full bg-emerald-400/80" />}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** Decorative 4×4 board with one solved row, for Cuartetos (no real answers). */
+function MiniQuartets() {
+  return (
+    <div aria-hidden className="hidden shrink-0 flex-col gap-1.5 sm:flex">
+      <span className="h-9 w-[13.5rem] rounded-lg border border-sun-400/50 bg-sun-400/20" />
+      {[0, 1, 2].map((r) => (
+        <div key={r} className="flex gap-1.5">
+          {[0, 1, 2, 3].map((c) => (
+            <span
+              key={c}
+              className={`size-12 rounded-lg border bg-night-950/50 transition group-hover:border-white/20 ${
+                r === 1 && c > 1 ? "border-sun-400/70" : "border-white/10"
+              }`}
+              style={{ transitionDelay: `${(r * 4 + c) * 20}ms` }}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
   );
 }
 

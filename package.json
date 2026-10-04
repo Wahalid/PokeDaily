@@ -12,7 +12,13 @@
     "grid:preview": "tsx scripts/grid-preview.ts",
     "verify": "tsx scripts/verify.ts",
     "grid:freeze": "tsx scripts/freeze-grids.ts",
-    "guess:freeze": "tsx scripts/freeze-guess.ts"
+    "guess:freeze": "tsx scripts/freeze-guess.ts",
+    "quartets:freeze": "tsx scripts/freeze-quartets.ts",
+    "bingo:freeze": "tsx scripts/freeze-bingo.ts",
+    "top10:freeze": "tsx scripts/freeze-top10.ts",
+    "wordle:freeze": "tsx scripts/freeze-wordle.ts",
+    "impostor:freeze": "tsx scripts/freeze-impostor.ts",
+    "cry:freeze": "tsx scripts/freeze-cry.ts"
   },
   "dependencies": {
     "next": "16.3.8",

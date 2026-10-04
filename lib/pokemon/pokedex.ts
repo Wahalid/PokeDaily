@@ -30,6 +30,11 @@ export class Pokedex {
   }
 }
 
+/** Regular species only: our dataset stores forms (megas, regional, …) inside their species. */
+export function isBaseSpecies(p: Pokemon): boolean {
+  return p.id === p.dexNumber;
+}
+
 export function toSummary(p: Pokemon): PokemonSummary {
   return { id: p.id, dexNumber: p.dexNumber, name: p.name, sprite: p.sprites.default };
 }
