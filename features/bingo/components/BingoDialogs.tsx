@@ -2,7 +2,7 @@
 
 import { Dialog } from "@/components/ui/Dialog";
 import { StatGrid } from "@/components/ui/StatGrid";
-import { CELL_COUNT, DECK_SIZE, MAX_LIVES, MAX_SKIPS } from "@/lib/bingo/types";
+import { CELL_COUNT, DECK_SIZE, MAX_SKIPS } from "@/lib/bingo/types";
 import type { BingoStats } from "../progress";
 
 function DialogHeader({ title, onClose }: { title: string; onClose: () => void }) {
@@ -28,8 +28,11 @@ export function BingoHelpDialog({ open, onClose }: { open: boolean; onClose: () 
       <ol className="list-decimal space-y-2 pl-5 text-sm text-mist">
         <li>Recibes Pokémon <strong className="text-white">uno a uno</strong> ({DECK_SIZE} en total).</li>
         <li>Colócalos en una casilla <strong className="text-white">que cumpla su condición</strong>: toca la casilla y pulsa «Colocar».</li>
-        <li>Tienes <strong className="text-white">{MAX_LIVES} vidas</strong>: cada colocación incorrecta gasta una (y ese Pokémon).</li>
-        <li>Tienes <strong className="text-white">{MAX_SKIPS} saltos</strong> para descartar Pokémon sin perder vida.</li>
+        <li>
+          Si no cumple la condición, la casilla marca <strong className="text-ember-300">ERROR</strong>: sin penalización, puedes probar ese mismo Pokémon en otras
+          casillas.
+        </li>
+        <li>Tienes <strong className="text-white">{MAX_SKIPS} saltos</strong> para descartar Pokémon. Sin saltos, un Pokémon que no encaja en ninguna casilla libre se descarta solo.</li>
         <li>Completa las <strong className="text-white">{CELL_COUNT} casillas</strong> para hacer ¡BINGO!</li>
       </ol>
       <p className="mt-3 text-xs text-mist-dim">Un nuevo PokéBingo cada día, igual para todos.</p>

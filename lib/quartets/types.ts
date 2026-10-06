@@ -1,7 +1,5 @@
 import type { PokemonSummary } from "@/lib/pokemon/types";
 
-/** Mistakes allowed before the game is lost. */
-export const MAX_MISTAKES = 4;
 export const GROUP_SIZE = 4;
 export const GROUP_COUNT = 4;
 
@@ -44,4 +42,3 @@ export type QuartetGuessResponse =
   | { ok: true; result: "one-away" | "wrong" }
   | { ok: false; message: string };
 
-export type QuartetRevealResponse = { ok: true; groups: SolvedGroupView[] } | { ok: false; message: string };

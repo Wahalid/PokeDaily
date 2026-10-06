@@ -8,48 +8,50 @@ const MAX_RETRIES = 2;
  * The round's audio player: big Play/Pause, progress bar, replay. Unlimited
  * listens. If the audio can't load it says so, offers retries and, as a last
  * resort, lets the parent void the round (never a silent round).
+ *
+ * iOS/Safari notes: Safari doesn't preload media until the user taps, so Play
+ * is never disabled while "loading" (tapping it is what starts the download);
+ * only a real media error (the `error` event) or an unsupported source counts
+ * as a failure — an interrupted or blocked play() is not a load error.
  */
 export function CryPlayer({ src, round, onGiveUp }: { src: string; round: number; onGiveUp?: () => void }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
+  const [waiting, setWaiting] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [failed, setFailed] = useState(false);
   const [retries, setRetries] = useState(0);
-  const url = retries ? `${src}?retry=${retries}` : src;
+  const url = retries ? `${src}&retry=${retries}` : src;
 
-  // A new round (or a retry) starts from a clean state.
+  // A new round (or a retry) starts from a clean element state.
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    audio.load();
+    audioRef.current?.load();
   }, [url]);
 
-  const toggle = async () => {
+  const start = async (fromStart: boolean) => {
     const audio = audioRef.current;
-    if (!audio || status === "error") return;
-    if (!audio.paused) {
-      audio.pause();
-      return;
-    }
-    if (audio.ended || audio.currentTime >= (audio.duration || Infinity)) audio.currentTime = 0;
+    if (!audio || failed) return;
+    if (fromStart || audio.ended) audio.currentTime = 0;
+    setWaiting(true);
     try {
       await audio.play();
-    } catch {
-      setStatus("error");
+    } catch (error) {
+      setWaiting(false);
+      // NotSupportedError = the source can't be played; anything else (AbortError when a
+      // new load interrupts, NotAllowedError) is not a broken file: the player can tap again.
+      if ((error as Error)?.name === "NotSupportedError") setFailed(true);
     }
   };
-  const replay = async () => {
+  const toggle = () => {
     const audio = audioRef.current;
-    if (!audio || status === "error") return;
-    audio.currentTime = 0;
-    try {
-      await audio.play();
-    } catch {
-      setStatus("error");
-    }
+    if (!audio || failed) return;
+    if (!audio.paused) audio.pause();
+    else void start(false);
   };
   const retry = () => {
-    setStatus("loading");
+    setFailed(false);
+    setWaiting(false);
+    setProgress(0);
     setRetries((r) => r + 1);
   };
 
@@ -63,20 +65,31 @@ export function CryPlayer({ src, round, onGiveUp }: { src: string; round: number
         ref={audioRef}
         src={url}
         preload="auto"
-        onCanPlay={() => setStatus("ready")}
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
+        onPlaying={() => {
+          setWaiting(false);
+          setPlaying(true);
+        }}
+        onWaiting={() => setWaiting(true)}
+        onPause={() => {
+          setPlaying(false);
+          setWaiting(false);
+        }}
         onEnded={() => {
           setPlaying(false);
+          setWaiting(false);
           setProgress(1);
         }}
         onTimeUpdate={(e) => {
           const a = e.currentTarget;
           setProgress(a.duration ? a.currentTime / a.duration : 0);
         }}
-        onError={() => setStatus("error")}
+        onError={() => {
+          setFailed(true);
+          setPlaying(false);
+          setWaiting(false);
+        }}
       />
-      {status === "error" ? (
+      {failed ? (
         <div className="relative">
           <p className="text-lg font-black text-ember-300">🔇 No se pudo cargar el sonido</p>
           <p className="mt-1 text-sm text-mist">Comprueba tu conexión e inténtalo de nuevo.</p>
@@ -105,16 +118,15 @@ export function CryPlayer({ src, round, onGiveUp }: { src: string; round: number
           <button
             type="button"
             onClick={toggle}
-            disabled={status === "loading"}
             aria-label={playing ? "Pausar el cry" : "Reproducir el cry"}
-            className={`grid size-24 place-items-center rounded-full bg-sun-400 text-4xl text-night-950 shadow-[0_10px_30px_-8px_rgb(255_201_40/0.7)] transition hover:bg-sun-300 active:scale-95 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sun-400 sm:size-28 ${
+            className={`grid size-24 place-items-center rounded-full bg-sun-400 text-4xl text-night-950 shadow-[0_10px_30px_-8px_rgb(255_201_40/0.7)] transition hover:bg-sun-300 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sun-400 sm:size-28 ${
               playing ? "animate-pulse" : ""
             }`}
           >
             <span aria-hidden>{playing ? "❚❚" : "▶"}</span>
           </button>
           <p className="mt-2 text-sm font-bold" aria-live="polite">
-            {status === "loading" ? "Cargando sonido…" : playing ? "🔊 Sonando…" : "🔊 Pulsa para escuchar"}
+            {waiting && !playing ? "Cargando sonido…" : playing ? "🔊 Sonando…" : "🔊 Pulsa para escuchar"}
           </p>
           <div
             role="progressbar"
@@ -128,9 +140,8 @@ export function CryPlayer({ src, round, onGiveUp }: { src: string; round: number
           </div>
           <button
             type="button"
-            onClick={replay}
-            disabled={status === "loading"}
-            className="mt-3 rounded-full px-3 py-1 text-xs font-bold text-mist transition hover:bg-white/10 hover:text-white disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-sun-400"
+            onClick={() => void start(true)}
+            className="mt-3 rounded-full px-3 py-1 text-xs font-bold text-mist transition hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-sun-400"
           >
             ↺ Volver a escuchar
           </button>

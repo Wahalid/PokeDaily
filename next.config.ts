@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
   },
   // PokéCry reads its prepared (encrypted) cries from disk at runtime.
   outputFileTracingIncludes: {
-    "/api/cry/**": ["./data/cries/**/*"],
+    "/api/cry": ["./data/cries/**/*"],
   },
   experimental: {
     // Turbopack's persistent build cache (.next/cache/turbopack) records the

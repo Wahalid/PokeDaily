@@ -1,14 +1,11 @@
 import { toSummary } from "@/lib/pokemon/pokedex";
 import type { Pokemon } from "@/lib/pokemon/types";
 import { getQuartetCategory } from "./categories";
-import { groupKey } from "./generator";
 import {
   GROUP_SIZE,
-  MAX_MISTAKES,
   type QuartetBoard,
   type QuartetGroup,
   type QuartetGuessResponse,
-  type QuartetRevealResponse,
   type SolvedGroupView,
 } from "./types";
 
@@ -45,24 +42,4 @@ export function checkSelection(board: QuartetBoard, selection: unknown, lookup: 
   }
   const oneAway = board.groups.some((g) => selection.filter((id) => g.pokemonIds.includes(id)).length === GROUP_SIZE - 1);
   return { ok: true, result: oneAway ? "one-away" : "wrong" };
-}
-
-/**
- * Reveals every group after a loss. The client must present MAX_MISTAKES
- * distinct selections that are indeed wrong (the server is stateless, so this
- * is the proof that the game was lost).
- */
-export function revealAfterLoss(board: QuartetBoard, wrongSelections: unknown, lookup: Lookup): QuartetRevealResponse {
-  if (!Array.isArray(wrongSelections) || wrongSelections.length < MAX_MISTAKES) {
-    return { ok: false, message: "La partida no ha terminado." };
-  }
-  const keys = new Set<string>();
-  for (const selection of wrongSelections) {
-    if (!isValidSelection(board, selection)) return { ok: false, message: "Petición no válida." };
-    const result = checkSelection(board, selection, lookup);
-    if (!result.ok || result.result === "correct") return { ok: false, message: "La partida no ha terminado." };
-    keys.add(groupKey(selection));
-  }
-  if (keys.size < MAX_MISTAKES) return { ok: false, message: "La partida no ha terminado." };
-  return { ok: true, groups: board.groups.map((g) => groupView(g, lookup)) };
 }

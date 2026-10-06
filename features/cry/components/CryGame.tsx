@@ -78,7 +78,7 @@ export function CryGame({ challengeNumber, progressKey, initialState }: { challe
           <div className="mt-3">
             <CryPlayer
               key={`${challengeNumber}-${roundIndex}`}
-              src={`/api/cry/${challengeNumber}/${roundIndex + 1}`}
+              src={`/api/cry?day=${challengeNumber}&round=${roundIndex + 1}`}
               round={roundIndex + 1}
               onGiveUp={reviewing ? undefined : () => submit(VOID_CHOICE)}
             />

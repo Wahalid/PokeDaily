@@ -9,7 +9,6 @@ import { BingoStatsPanel } from "./BingoDialogs";
 
 const REASONS: Record<BingoEndReason, string> = {
   complete: "Victoria",
-  "no-lives": "Te has quedado sin vidas",
   "deck-exhausted": "Se han acabado los Pokémon del mazo",
 };
 

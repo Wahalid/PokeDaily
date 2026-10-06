@@ -2,8 +2,8 @@
 
 import { currentChallengeNumber } from "@/lib/daily/calendar";
 import { getPokedex } from "@/lib/pokemon/repository";
-import { checkSelection, revealAfterLoss } from "@/lib/quartets/play";
-import type { QuartetGuessResponse, QuartetRevealResponse } from "@/lib/quartets/types";
+import { checkSelection } from "@/lib/quartets/play";
+import type { QuartetGuessResponse } from "@/lib/quartets/types";
 import { getDailyQuartets } from "@/lib/server/quartets-service";
 
 const UNAVAILABLE = { ok: false as const, message: "El juego no está disponible en este momento." };
@@ -21,12 +21,4 @@ export async function submitQuartet(input: { challengeNumber: number; selection:
   if (!board) return UNAVAILABLE;
   const pokedex = getPokedex();
   return checkSelection(board, input.selection, (id) => pokedex.getById(id));
-}
-
-/** Reveals the four groups after a loss (requires the 4 wrong selections). */
-export async function revealQuartets(input: { challengeNumber: number; wrongSelections: number[][] }): Promise<QuartetRevealResponse> {
-  const board = boardFor(input?.challengeNumber);
-  if (!board) return UNAVAILABLE;
-  const pokedex = getPokedex();
-  return revealAfterLoss(board, input.wrongSelections, (id) => pokedex.getById(id));
 }

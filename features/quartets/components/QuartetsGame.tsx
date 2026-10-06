@@ -3,8 +3,8 @@
 import { useMemo, useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
 import type { PokemonSummary } from "@/lib/pokemon/types";
-import { GROUP_SIZE, MAX_MISTAKES, type SolvedGroupView, type Tier } from "@/lib/quartets/types";
-import { revealQuartets, submitQuartet } from "../actions";
+import { GROUP_SIZE, type SolvedGroupView, type Tier } from "@/lib/quartets/types";
+import { submitQuartet } from "../actions";
 import { buildQuartetsShareText } from "../share";
 import { attemptKey, recordQuartetsResult, useQuartetsProgress, useQuartetsStats } from "../use-quartets-progress";
 import { HelpDialog, StatsDialog } from "./QuartetsDialogs";
@@ -14,7 +14,7 @@ import { SolvedGroup } from "./SolvedGroup";
 
 type Message = { text: string; tone: "info" | "good" | "bad"; key: number };
 
-/** Interactive daily Cuartetos: solved groups + 4×4 board + lives + controls + result. */
+/** Interactive daily Cuartetos: solved groups + 4×4 board + controls + result. Mistakes have no penalty. */
 export function QuartetsGame({
   challengeNumber,
   progressKey,
@@ -49,13 +49,6 @@ export function QuartetsGame({
 
   const shuffle = () => progress.setOrder([...progress.order.filter((id) => solvedIds.has(id)), ...shuffledCopy(remaining)]);
 
-  const reveal = (wrongSelections: number[][]) =>
-    startTransition(async () => {
-      const result = await revealQuartets({ challengeNumber, wrongSelections }).catch(() => null);
-      if (result?.ok) progress.setRevealed(result.groups);
-      else say("No se pudieron mostrar los grupos. Inténtalo de nuevo.", "bad");
-    });
-
   const check = () => {
     if (selection.length !== GROUP_SIZE || pending || finished) return;
     const picked = selection;
@@ -79,13 +72,7 @@ export function QuartetsGame({
       progress.addAttempt({ ids: picked, result: result.result });
       setShaking(picked);
       setTimeout(() => setShaking([]), 400);
-      say(result.result === "one-away" ? "¡A una!" : "Incorrecto", "bad");
-      if (progress.mistakes + 1 >= MAX_MISTAKES) {
-        setSelection([]);
-        recordQuartetsResult(challengeNumber, false, MAX_MISTAKES);
-        const wrong = [...progress.attempts.filter((a) => a.result !== "correct").map((a) => a.ids), picked];
-        reveal(wrong);
-      }
+      say(result.result === "one-away" ? "¡A una! Ese cuarteto no es válido" : "Ese cuarteto no es válido", "bad");
     });
   };
 
@@ -146,7 +133,10 @@ export function QuartetsGame({
 
       {!finished && (
         <>
-          <Lives left={MAX_MISTAKES - progress.mistakes} />
+          <p className="mt-1 text-center text-sm font-semibold text-mist">
+            Errores: <span className="text-white tabular-nums">{progress.mistakes}</span>
+            <span className="text-mist-dim"> · sin penalización</span>
+          </p>
           <div className="mt-3 flex justify-center gap-2">
             <Button variant="secondary" className="px-3 sm:px-5" onClick={shuffle} disabled={pending}>
               Barajar
@@ -159,18 +149,6 @@ export function QuartetsGame({
             </Button>
           </div>
         </>
-      )}
-
-      {progress.lost && !progress.revealed && (
-        <div className="mt-3 flex justify-center">
-          <Button
-            variant="secondary"
-            disabled={pending}
-            onClick={() => reveal(progress.attempts.filter((a) => a.result !== "correct").map((a) => a.ids))}
-          >
-            Mostrar los grupos
-          </Button>
-        </div>
       )}
 
       {finished && (
@@ -202,21 +180,4 @@ function shuffledCopy(ids: readonly number[]): number[] {
     [out[i], out[j]] = [out[j], out[i]];
   }
   return out;
-}
-
-function Lives({ left }: { left: number }) {
-  return (
-    <div className="mt-1 flex items-center justify-center gap-2 text-sm font-semibold text-mist">
-      <span>Vidas:</span>
-      <span role="img" aria-label={`Te quedan ${left} de ${MAX_MISTAKES} vidas`} className="flex gap-1.5">
-        {Array.from({ length: MAX_MISTAKES }, (_, i) => (
-          <span
-            key={i}
-            aria-hidden
-            className={`size-3 rounded-full transition-colors duration-300 ${i < left ? "bg-ember-500 shadow-[0_0_8px_rgb(229_72_77/0.6)]" : "bg-white/10 ring-1 ring-white/20"}`}
-          />
-        ))}
-      </span>
-    </div>
-  );
 }

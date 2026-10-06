@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { PokemonSprite } from "@/components/pokemon/PokemonSprite";
 import { Button } from "@/components/ui/Button";
-import { MAX_LIVES, type BingoCellView, type BingoMove, type BingoPublicState } from "@/lib/bingo/types";
+import type { BingoCellView, BingoMove, BingoPublicState } from "@/lib/bingo/types";
 import { submitBingoMoves } from "../actions";
 import { recordBingoResult, useBingoProgress, useBingoStats } from "../progress";
 import { buildBingoShareText } from "../share";
@@ -56,9 +56,13 @@ export function BingoGame({
       } else if (last?.kind === "wrong") {
         setFlash({ cell: last.cell, kind: "wrong" });
         setTimeout(() => setFlash(null), 600);
-        say(`${last.pokemon.name} no cumple «${cells[last.cell].label}» · −1 vida`, "bad");
+        say(`❌ ERROR: ${last.pokemon.name} no cumple «${cells[last.cell].label}». Prueba en otra casilla.`, "bad");
       } else if (last?.kind === "skip") {
         say(`${last.pokemon.name} descartado`, "info");
+      }
+      if (result.autoDiscarded.length > 0) {
+        const names = result.autoDiscarded.map((p) => p.name).join(", ");
+        say(`${names} no encaja${result.autoDiscarded.length > 1 ? "n" : ""} en ninguna casilla libre: descartado sin coste`, "info");
       }
       if (result.state.status !== "playing") {
         recordBingoResult(challengeNumber, result.state.status === "won", result.state.placed.filter(Boolean).length);
@@ -83,7 +87,7 @@ export function BingoGame({
         </Button>
       </div>
 
-      <Counters lives={state.lives} skips={state.skips} filled={filled} />
+      <Counters skips={state.skips} filled={filled} />
 
       {playing && state.current && (
         <section
@@ -139,6 +143,7 @@ export function BingoGame({
             selected={selected === i}
             playable={playing && !pending}
             flash={flash?.cell === i ? flash.kind : null}
+            error={playing && state.wrongCells.includes(i)}
             finished={!playing}
             onSelect={() => onCell(i)}
           />
@@ -154,7 +159,6 @@ export function BingoGame({
           shareText={buildBingoShareText({
             challengeNumber,
             filled: state.placed.map(Boolean),
-            lives: state.lives,
             won: state.status === "won",
           })}
         />
@@ -166,12 +170,9 @@ export function BingoGame({
   );
 }
 
-function Counters({ lives, skips, filled }: { lives: number; skips: number; filled: number }) {
+function Counters({ skips, filled }: { skips: number; filled: number }) {
   return (
     <div className="mt-3 flex items-center justify-center gap-2 text-sm font-bold sm:gap-3">
-      <span role="img" aria-label={`Vidas: ${lives} de ${MAX_LIVES}`} className="rounded-full bg-night-800/80 px-3 py-1 ring-1 ring-white/10">
-        <span aria-hidden>{"❤️".repeat(Math.max(0, lives)) + "❌".repeat(MAX_LIVES - Math.max(0, lives))}</span>
-      </span>
       <span className="rounded-full bg-night-800/80 px-3 py-1 text-mist ring-1 ring-white/10">
         SALTOS: <span className="text-white tabular-nums">{skips}</span>
       </span>

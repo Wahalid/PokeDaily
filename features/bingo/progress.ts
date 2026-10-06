@@ -18,7 +18,8 @@ export const bingoStorageKey = (challengeNumber: number) => `pokedaily:bingo:${c
 
 /** Pure: returns the saved progress if it belongs to this puzzle, otherwise a fresh game. */
 export function restoreBingo(raw: StoredBingo | null | undefined, progressKey: string, initial: BingoPublicState) {
-  const valid = !!raw && raw.key === progressKey && Array.isArray(raw.moves) && !!raw.state;
+  // `wrongCells` guards against progress saved by the previous rules (lives; a failed placement used the card up).
+  const valid = !!raw && raw.key === progressKey && Array.isArray(raw.moves) && Array.isArray(raw.state?.wrongCells);
   return valid ? { moves: raw!.moves, state: raw!.state! } : { moves: [] as BingoMove[], state: initial };
 }
 

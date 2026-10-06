@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { MAX_MISTAKES, type SolvedGroupView } from "@/lib/quartets/types";
+import type { SolvedGroupView } from "@/lib/quartets/types";
 import { readLocal, useLocalStorage, writeLocal } from "@/lib/storage/local-store";
 import { computeStreak, recordCompletion } from "@/lib/storage/streaks";
 
@@ -16,13 +16,25 @@ interface StoredQuartets {
   order: number[];
   solved: SolvedGroupView[];
   attempts: Attempt[];
-  /** All groups, filled in once the game is lost. */
+  /** Legacy: all groups, saved when a game was lost under the old lives rule (no longer possible). */
   revealed?: SolvedGroupView[];
 }
 
 const EMPTY: StoredQuartets = { order: [], solved: [], attempts: [] };
 
 export const attemptKey = (ids: readonly number[]) => [...ids].sort((a, b) => a - b).join(",");
+
+/**
+ * Game status from saved progress. Mistakes have no penalty: the game only
+ * ends when the 4 groups are found. `lost` only exists for progress saved
+ * under the old lives rule (groups already revealed), so it can't be resumed.
+ */
+export function quartetsStatus(state: { solved: readonly unknown[]; attempts: readonly Attempt[]; revealed?: readonly unknown[] }) {
+  const mistakes = state.attempts.filter((a) => a.result !== "correct").length;
+  const won = state.solved.length === 4;
+  const lost = !won && (state.revealed?.length ?? 0) > 0;
+  return { mistakes, won, lost };
+}
 
 /** Player progress for one daily Cuartetos, persisted in localStorage. */
 export function useQuartetsProgress(challengeNumber: number, progressKey: string, initialOrder: number[]) {
@@ -32,9 +44,7 @@ export function useQuartetsProgress(challengeNumber: number, progressKey: string
     s.key === progressKey && Array.isArray(s.attempts) ? s : { ...EMPTY, order: initialOrder };
   const state = normalize(stored);
 
-  const mistakes = state.attempts.filter((a) => a.result !== "correct").length;
-  const won = state.solved.length === 4;
-  const lost = !won && mistakes >= MAX_MISTAKES;
+  const { mistakes, won, lost } = quartetsStatus(state);
   const triedKeys = useMemo(() => new Set(state.attempts.map((a) => attemptKey(a.ids))), [state.attempts]);
 
   // Always patch the latest stored state (several saves can happen in one async flow).
@@ -55,7 +65,6 @@ export function useQuartetsProgress(challengeNumber: number, progressKey: string
     setOrder: (order: number[]) => save(() => ({ order })),
     addAttempt: (attempt: Attempt, group?: SolvedGroupView) =>
       save((c) => ({ attempts: [...c.attempts, attempt], solved: group ? [...c.solved, group] : c.solved })),
-    setRevealed: (revealed: SolvedGroupView[]) => save(() => ({ revealed })),
   };
 }
 

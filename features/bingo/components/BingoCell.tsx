@@ -17,6 +17,7 @@ export function BingoCell({
   selected,
   playable,
   flash,
+  error = false,
   finished,
   onSelect,
 }: {
@@ -25,6 +26,8 @@ export function BingoCell({
   selected: boolean;
   playable: boolean;
   flash: CellFlash;
+  /** The current Pokémon was already tried here and doesn't fit (no penalty; still clickable). */
+  error?: boolean;
   finished: boolean;
   onSelect: () => void;
 }) {
@@ -63,7 +66,7 @@ export function BingoCell({
     <button
       type="button"
       title={cell.label}
-      aria-label={`${cell.label}${selected ? ", seleccionada" : ""}${finished ? ", sin completar" : ""}`}
+      aria-label={`${cell.label}${selected ? ", seleccionada" : ""}${error ? ", error: este Pokémon no encaja" : ""}${finished ? ", sin completar" : ""}`}
       aria-pressed={selected}
       disabled={!playable}
       onClick={onSelect}
@@ -72,10 +75,13 @@ export function BingoCell({
           ? "-translate-y-1 border-sun-400 bg-night-600 shadow-[0_10px_24px_-10px_rgb(255_201_40/0.6)]"
           : finished
             ? "border-white/10 bg-night-800/50 opacity-60"
+            : error
+              ? "border-ember-500/70 bg-ember-500/10 enabled:hover:-translate-y-0.5"
             : "border-dashed border-brand-500/40 bg-night-700/70 enabled:hover:-translate-y-0.5 enabled:hover:border-brand-300/70 enabled:hover:bg-night-600"
       } ${flash === "wrong" ? "animate-shake border-ember-500 bg-ember-500/15" : ""}`}
     >
       {label}
+      {error && !finished && <span className="rounded-full bg-ember-500 px-1.5 text-[9px] font-black tracking-wide text-white sm:text-[10px]">✗ ERROR</span>}
       {finished && <span className="text-[9px] font-semibold text-mist-dim uppercase">sin completar</span>}
     </button>
   );

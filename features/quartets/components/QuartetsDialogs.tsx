@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog } from "@/components/ui/Dialog";
-import { MAX_MISTAKES, TIERS } from "@/lib/quartets/types";
+import { TIERS } from "@/lib/quartets/types";
 import type { QuartetsStats } from "../use-quartets-progress";
 import { TIER_STYLES } from "../tier-styles";
 
@@ -31,9 +31,9 @@ export function HelpDialog({ open, onClose }: { open: boolean; onClose: () => vo
         </p>
         <ul className="list-disc space-y-1 pl-5">
           <li>Selecciona 4 cartas y pulsa <strong className="text-white">Comprobar</strong>.</li>
-          <li>Tienes {MAX_MISTAKES} vidas. Cada error resta una.</li>
+          <li>Fallar no tiene penalización: si el cuarteto no es válido te lo diremos y puedes seguir probando.</li>
           <li>Si 3 de tus 4 cartas son del mismo grupo verás <strong className="text-white">«¡A una!»</strong>.</li>
-          <li>Repetir una combinación ya probada no cuesta vida.</li>
+          <li>Repetir una combinación ya probada no cuenta como error.</li>
           <li>Las categorías pueden ser tipos, generaciones, habilidades, medidas…</li>
         </ul>
         <p>Cada grupo tiene una dificultad, que solo descubrirás al resolverlo:</p>
