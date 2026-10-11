@@ -33,6 +33,7 @@ export function PokemonSearch({
   disabled = false,
   placeholder = "Search Pokémon...",
   labels: customLabels,
+  resetKey,
 }: {
   onSelect: (pokemon: PokemonSummary) => void;
   usedIds?: readonly number[];
@@ -40,6 +41,12 @@ export function PokemonSearch({
   placeholder?: string;
   /** Optional UI copy overrides (e.g. for a Spanish-language game). */
   labels?: Partial<PokemonSearchLabels>;
+  /**
+   * Changing this clears the query in place. Unlike remounting with `key`, the
+   * same <input> survives, so a player who submitted with Enter keeps the
+   * caret and can type the next guess straight away.
+   */
+  resetKey?: string | number;
 }) {
   const labels = { ...DEFAULT_LABELS, ...customLabels };
   const listId = useId();
@@ -47,6 +54,12 @@ export function PokemonSearch({
   const [loadFailed, setLoadFailed] = useState(false);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
+  const [lastResetKey, setLastResetKey] = useState(resetKey);
+  if (resetKey !== lastResetKey) {
+    setLastResetKey(resetKey);
+    setQuery("");
+    setActive(0);
+  }
 
   useEffect(() => {
     let alive = true;
@@ -99,7 +112,7 @@ export function PokemonSearch({
           }}
           onKeyDown={onKeyDown}
           placeholder={placeholder}
-          className="w-full rounded-2xl border border-white/10 bg-night-700 py-3 pr-4 pl-11 text-base text-white outline-none transition placeholder:text-mist-dim focus:border-brand-500 focus:bg-night-600 focus:ring-4 focus:ring-brand-500/25"
+          className="w-full rounded-2xl border border-brand-500/25 bg-night-700 py-3 pr-4 pl-11 text-base text-white outline-none transition placeholder:text-mist-dim focus:border-brand-500 focus:bg-night-600 focus:ring-4 focus:ring-brand-500/25"
         />
       </div>
 

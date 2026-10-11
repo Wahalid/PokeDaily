@@ -2,6 +2,8 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
+import { GameToolbar } from "@/components/ui/GameToolbar";
+import { GameStatus, type StatusMessage } from "@/components/ui/GameStatus";
 import type { PokemonSummary } from "@/lib/pokemon/types";
 import { GROUP_SIZE, type SolvedGroupView, type Tier } from "@/lib/quartets/types";
 import { submitQuartet } from "../actions";
@@ -12,7 +14,7 @@ import { QuartetCard } from "./QuartetCard";
 import { QuartetsResult } from "./QuartetsResult";
 import { SolvedGroup } from "./SolvedGroup";
 
-type Message = { text: string; tone: "info" | "good" | "bad"; key: number };
+type Message = StatusMessage;
 
 /** Interactive daily Cuartetos: solved groups + 4×4 board + controls + result. Mistakes have no penalty. */
 export function QuartetsGame({
@@ -81,14 +83,7 @@ export function QuartetsGame({
 
   return (
     <div className="mx-auto max-w-xl">
-      <div className="flex justify-center gap-2">
-        <Button variant="ghost" className="px-3 py-1.5" onClick={() => setDialog("help")}>
-          <span aria-hidden>?</span> Ayuda
-        </Button>
-        <Button variant="ghost" className="px-3 py-1.5" onClick={() => setDialog("stats")}>
-          <span aria-hidden>▤</span> Estadísticas
-        </Button>
-      </div>
+      <GameToolbar onHelp={() => setDialog("help")} onStats={() => setDialog("stats")} />
 
       {(progress.solved.length > 0 || unsolvedRevealed.length > 0) && (
         <ol aria-label="Grupos resueltos" className="mt-4 flex flex-col gap-2">
@@ -114,22 +109,7 @@ export function QuartetsGame({
         </div>
       )}
 
-      <p aria-live="polite" className="mt-3 min-h-6 text-center text-sm font-bold">
-        {message && (
-          <span
-            key={message.key}
-            className={`inline-block animate-fade-up rounded-full px-3 py-0.5 ${
-              message.tone === "good"
-                ? "bg-emerald-500/15 text-emerald-300"
-                : message.tone === "bad"
-                  ? "bg-ember-500/15 text-ember-300"
-                  : "bg-white/10 text-mist"
-            }`}
-          >
-            {message.text}
-          </span>
-        )}
-      </p>
+      <GameStatus message={message} className="mt-3" />
 
       {!finished && (
         <>

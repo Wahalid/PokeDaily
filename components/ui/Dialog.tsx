@@ -56,7 +56,7 @@ export function Dialog({
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className="relative flex max-h-[85dvh] w-full animate-sheet-up flex-col overflow-hidden rounded-t-3xl border border-white/10 bg-night-800 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-white shadow-[0_30px_80px_-20px_rgb(0_0_0/0.7)] outline-none sm:max-w-md sm:rounded-3xl"
+        className="panel relative flex max-h-[85dvh] w-full animate-sheet-up flex-col overflow-hidden rounded-b-none p-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-white outline-none sm:max-w-md sm:rounded-b-2xl"
       >
         {/* PokeDaily accent strip */}
         <span aria-hidden className="absolute inset-x-0 top-0 flex h-1">
@@ -67,5 +67,29 @@ export function Dialog({
         {children}
       </div>
     </div>
+  );
+}
+
+/** Title row of a dialog with its close button. */
+export function DialogHeader({ title, onClose, closeLabel = "Cerrar" }: { title: string; onClose: () => void; closeLabel?: string }) {
+  return (
+    <div className="mt-1 mb-3 flex items-center justify-between gap-3">
+      <h2 className="text-lg font-black tracking-tight">{title}</h2>
+      <DialogClose onClose={onClose} label={closeLabel} />
+    </div>
+  );
+}
+
+/** The dialog's ✕ button (40px touch target). */
+export function DialogClose({ onClose, label }: { onClose: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClose}
+      aria-label={label}
+      className="grid size-10 shrink-0 place-items-center rounded-full text-mist transition hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-sun-400"
+    >
+      ✕
+    </button>
   );
 }

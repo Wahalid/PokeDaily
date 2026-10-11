@@ -1,14 +1,11 @@
 import { PokemonSprite } from "@/components/pokemon/PokemonSprite";
-import { TYPE_COLORS, readableTextOn } from "@/components/pokemon/type-colors";
+import { PokemonTypeBadge } from "@/components/pokemon/PokemonTypeBadge";
 import type { BingoCellView } from "@/lib/bingo/types";
-import type { PokemonSummary, PokemonType } from "@/lib/pokemon/types";
+import { TYPE_LABELS } from "@/lib/pokemon/labels-es";
+import { typesOfCategory } from "@/lib/pokemon/type-names";
+import type { PokemonSummary } from "@/lib/pokemon/types";
 
 export type CellFlash = "placed" | "wrong" | null;
-
-/** Type cells get the type colour as a hint of what they are (presentation only). */
-function typeOf(cell: BingoCellView): PokemonType | null {
-  return cell.categoryId.startsWith("type:") ? (cell.categoryId.slice(5) as PokemonType) : null;
-}
 
 /** One of the 16 condition cells. Empty cells are buttons while a card is in play. */
 export function BingoCell({
@@ -31,14 +28,16 @@ export function BingoCell({
   finished: boolean;
   onSelect: () => void;
 }) {
-  const type = typeOf(cell);
-  const label = (
-    <span
-      className={`max-w-full rounded-md px-1.5 py-0.5 text-center text-[10px] leading-tight font-black break-words sm:text-xs ${
-        type ? "" : "text-white"
-      }`}
-      style={type ? { backgroundColor: TYPE_COLORS[type], color: readableTextOn(TYPE_COLORS[type]) } : undefined}
-    >
+  // Type and dual-type cells show the type badges instead of the type names (presentation only).
+  const types = typesOfCategory(cell.categoryId);
+  const label = types ? (
+    <span className="flex w-full flex-col items-center gap-0.5">
+      {types.map((t) => (
+        <PokemonTypeBadge key={t} type={t} alt={TYPE_LABELS[t]} size="sm" className="sm:w-[90px]" />
+      ))}
+    </span>
+  ) : (
+    <span className="max-w-full rounded-md px-1.5 py-0.5 text-center text-[10px] leading-tight font-black break-words text-white sm:text-xs">
       {cell.short}
     </span>
   );
@@ -57,7 +56,15 @@ export function BingoCell({
         </span>
         <PokemonSprite src={pokemon.sprite} name="" size={96} className="size-10 drop-shadow-[0_4px_6px_rgb(0_0_0/0.35)] sm:size-14" />
         <span className="w-full truncate text-center text-[9px] font-bold sm:text-xs">{pokemon.name}</span>
-        <span className="w-full truncate text-center text-[8px] font-semibold text-mist sm:text-[10px]">{cell.short}</span>
+        {types ? (
+          <span aria-hidden className="flex w-full justify-center gap-0.5">
+            {types.map((t) => (
+              <PokemonTypeBadge key={t} type={t} alt="" size="xs" className="min-w-0 sm:w-[72px]" />
+            ))}
+          </span>
+        ) : (
+          <span className="w-full truncate text-center text-[8px] font-semibold text-mist sm:text-[10px]">{cell.short}</span>
+        )}
       </div>
     );
   }

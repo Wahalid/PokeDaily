@@ -36,7 +36,8 @@ export function hasKnownConditions(definition: GridDefinition): boolean {
 }
 
 /**
- * Re-checks a frozen grid against the current data and rules.
+ * Re-checks a frozen grid against the current data and the rules of the
+ * generator version that made it (rules added later don't apply to it).
  * Returns a list of problems (empty = still valid and unchanged).
  */
 export function validateFrozenGrid(frozen: FrozenGrid, data: QualityData): string[] {
@@ -48,7 +49,7 @@ export function validateFrozenGrid(frozen: FrozenGrid, data: QualityData): strin
   if (counts.join(",") !== frozen.answerCounts.join(",")) {
     problems.push(`answer counts drifted: stored [${frozen.answerCounts}] now [${counts}]`);
   }
-  const full = assessGrid(frozen, data, undefined, frozen.level);
+  const full = assessGrid(frozen, data, undefined, frozen.level, frozen.generatorVersion);
   if (!solvable.rejection && full.rejection) problems.push(`fails "${frozen.level}" rules now (${full.rejection})`);
   return problems;
 }

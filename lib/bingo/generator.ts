@@ -2,7 +2,7 @@ import { hasDistinctSolution } from "@/lib/grid/engine";
 import { getQuartetCategory, type CategoryFamily, type QuartetCategory } from "@/lib/quartets/categories";
 import type { QuartetsData } from "@/lib/quartets/generator";
 import { createRng, pickWeighted, type Rng } from "@/lib/random";
-import { CELL_COUNT, DECK_SIZE, MAX_SKIPS, type BingoChallenge } from "./types";
+import { CELL_COUNT, DECK_SIZE, type BingoChallenge } from "./types";
 
 /**
  * PokéBingo generator (server / scripts only).
@@ -14,14 +14,15 @@ import { CELL_COUNT, DECK_SIZE, MAX_SKIPS, type BingoChallenge } from "./types";
  * 1. draw 16 categories by difficulty quota (4 easy, 3 normal, 5 hard, 4 expert),
  *    with per-family caps, no near-equivalent pairs and few very broad cells;
  * 2. pick one "solution" Pokémon per cell (distinct, ≤1 per evolution line),
- *    then 8 extra cards (mostly flexible, a few that fit nowhere);
- * 3. order the 24 cards so a perfect game (no mistakes, ≤3 skips) can be
- *    completed with the first 19 cards — verified with real matching;
- * 4. validate quality; retry; relax; finally use the pre-validated SAFE_BINGO.
+ *    then 8 extra cards — every card fits at least one cell;
+ * 3. shuffle them into the opening deck (at play time a card is only dealt
+ *    if it fits a cell that is still free; see lib/bingo/play.ts);
+ * 4. validate: real matching, and every reachable board state must stay
+ *    completable (`isAlwaysCompletable`); retry; relax; finally SAFE_BINGO.
  *
  * Bump BINGO_VERSION whenever output for a given seed would change.
  */
-export const BINGO_VERSION = "1.0.0";
+export const BINGO_VERSION = "2.0.0";
 
 /**
  * Cells per difficulty. Measured: with 6 "hard" cells the per-family caps forced
@@ -44,8 +45,6 @@ const BROAD_MEMBERS = 120;
 const MAX_BROAD_CELLS = 5;
 /** Two cells this similar (Jaccard of their Pokémon sets) are near-equivalent. */
 const MAX_JACCARD = 0.5;
-/** A perfect game must be completable within this many cards (16 + skips). */
-export const PERFECT_WINDOW = CELL_COUNT + MAX_SKIPS;
 
 export interface BingoRecency {
   /** Categories from the previous `strictDays` days are excluded… */
@@ -86,7 +85,7 @@ export interface BingoAnalysis {
   recognizable: number;
   /** Average number of cells each card fits. */
   avgOptions: number;
-  /** Cards that fit no cell (must be skipped). */
+  /** Cards that fit no cell (never allowed: they could never be dealt). */
   deadCards: number;
 }
 
@@ -111,6 +110,51 @@ export function cellCandidates(challenge: BingoChallenge, data: QuartetsData, ca
   return challenge.cells.map((cell) => cards.filter((id) => data.members.get(cell)?.has(id)));
 }
 
+/**
+ * True when NO sequence of correct placements can leave the board impossible
+ * to complete. Dealt Pokémon are never already on the board, so a set F of
+ * free cells is completable while |N(F) \ placed| ≥ |F| (Hall). The worst
+ * case for F takes as many of N(F)'s Pokémon as possible onto the other cells
+ * (a maximum matching M), so the board is safe iff |N(F)| − M(F) ≥ |F| for
+ * every F. Only sets with |N(F)| < 16 can fail, which keeps the search tiny.
+ */
+export function isAlwaysCompletable(cells: readonly string[], data: QuartetsData): boolean {
+  const sets = cells.map((id) => data.members.get(id) ?? new Set<number>());
+  const n = cells.length;
+  const small = sets.flatMap((s, i) => (s.size < n ? [i] : []));
+
+  const maxMatching = (left: number[], right: ReadonlySet<number>) => {
+    const owner = new Map<number, number>();
+    const assign = (cell: number, seen: Set<number>): boolean => {
+      for (const id of sets[cell]) {
+        if (!right.has(id) || seen.has(id)) continue;
+        seen.add(id);
+        const other = owner.get(id);
+        if (other === undefined || assign(other, seen)) {
+          owner.set(id, cell);
+          return true;
+        }
+      }
+      return false;
+    };
+    return left.reduce((size, cell) => size + (assign(cell, new Set()) ? 1 : 0), 0);
+  };
+
+  const search = (start: number, chosen: number[], union: ReadonlySet<number>): boolean => {
+    for (let k = start; k < small.length; k++) {
+      const next = new Set(union);
+      for (const id of sets[small[k]]) next.add(id);
+      if (next.size >= n) continue;
+      const free = [...chosen, small[k]];
+      const others = cells.map((_, i) => i).filter((i) => !free.includes(i));
+      if (next.size - maxMatching(others, next) < free.length) return false;
+      if (!search(k + 1, free, next)) return false;
+    }
+    return true;
+  };
+  return search(0, [], new Set());
+}
+
 /** Full validation of a daily challenge. Pure. */
 export function analyzeBingo(challenge: BingoChallenge, data: QuartetsData): BingoAnalysis {
   const problems: string[] = [];
@@ -126,12 +170,10 @@ export function analyzeBingo(challenge: BingoChallenge, data: QuartetsData): Bin
   if (deck.some((id) => !data.byId.has(id))) problems.push("card outside the base-species pool");
   if (problems.length) return { problems, quality, recognizable: 0, avgOptions: 0, deadCards: 0 };
 
-  // Solvability: real matching cells ↔ distinct cards, in the full deck AND
-  // within the first 19 cards (a perfect game with ≤3 skips must exist).
+  // Solvability: real matching cells ↔ distinct cards of the opening deck, and
+  // no reachable board state can become impossible to complete.
   if (!hasDistinctSolution(cellCandidates(challenge, data))) problems.push("board cannot be completed with this deck");
-  if (!hasDistinctSolution(cellCandidates(challenge, data, deck.slice(0, PERFECT_WINDOW)))) {
-    problems.push("no perfect game within the first 19 cards");
-  }
+  if (!isAlwaysCompletable(cells, data)) problems.push("a reachable board state cannot be completed");
 
   const familyCount = new Map<string, number>();
   for (const c of categories as QuartetCategory[]) familyCount.set(c.family, (familyCount.get(c.family) ?? 0) + 1);
@@ -144,12 +186,12 @@ export function analyzeBingo(challenge: BingoChallenge, data: QuartetsData): Bin
 
   const options = deck.map((id) => cells.filter((cell) => data.members.get(cell)!.has(id)).length);
   const deadCards = options.filter((n) => n === 0).length;
+  if (deadCards > 0) problems.push("card fits no cell");
   const avgOptions = options.reduce((a, b) => a + b, 0) / deck.length;
   const recognizable = deck.filter((id) => data.familiar.has(id)).length;
   const broad = cells.filter((id) => data.members.get(id)!.size > BROAD_MEMBERS).length;
 
   if (recognizable < 16) quality.push("too-few-recognizable");
-  if (deadCards > 2) quality.push("too-many-dead-cards");
   if (avgOptions < 1.3) quality.push("too-few-choices");
   if (avgOptions > 4) quality.push("too-easy");
   if (broad > MAX_BROAD_CELLS) quality.push("too-many-broad-cells");
@@ -322,29 +364,43 @@ function drawDeck(rng: Rng, data: QuartetsData, cells: QuartetCategory[], blocke
     solution.push(id);
   }
 
-  // 8 extra cards: mostly ones that fit at least one cell, at most 2 that fit none.
-  const fits = (id: number) => cells.filter((c) => data.members.get(c.id)!.has(id)).length;
+  // 8 extra cards, every one fitting at least one cell (a card that fits nowhere could never be dealt).
+  const fits = (id: number) => cells.some((c) => data.members.get(c.id)!.has(id));
   const extras: number[] = [];
-  let dead = 0;
-  const pool = data.pool.map((p) => p.id).filter(available);
+  const pool = data.pool.map((p) => p.id).filter((id) => available(id) && fits(id));
   while (extras.length < DECK_SIZE - CELL_COUNT) {
-    const candidates = pool.filter((id) => available(id) && (fits(id) > 0 || dead < 2));
+    const candidates = pool.filter(available);
     if (candidates.length === 0) return null;
-    const id = pickWeighted(rng, candidates, (x) => (data.familiar.has(x) ? 3 : 1) * (fits(x) > 0 ? 3 : 1));
-    if (fits(id) === 0) dead++;
+    const id = pickWeighted(rng, candidates, (x) => (data.familiar.has(x) ? 3 : 1));
     take(id);
     extras.push(id);
   }
+  return shuffle(rng, [...solution, ...extras]);
+}
 
-  // Order the deck so a perfect game fits in the first 19 cards.
-  const all = [...solution, ...extras];
-  for (let tries = 0; tries < 30; tries++) {
-    const deck = shuffle(rng, all);
-    const window = deck.slice(0, PERFECT_WINDOW);
-    const candidates = cells.map((c) => window.filter((id) => data.members.get(c.id)!.has(id)));
-    if (hasDistinctSolution(candidates)) return deck;
+/**
+ * Replaces the cards of an existing deck that fit no cell with fitting ones, in
+ * place (same positions, everything else untouched). Used to repair frozen
+ * boards produced by the previous generator, which allowed up to 2 such cards.
+ */
+export function repairDeadCards(challenge: BingoChallenge, data: QuartetsData, seed: string): BingoChallenge {
+  const rng = createRng(seed);
+  const fits = (id: number) => challenge.cells.some((c) => data.members.get(c)!.has(id));
+  const chain = (id: number) => {
+    const evo = data.byId.get(id)?.evolution;
+    return evo?.hasEvolutionFamily ? evo.chainId : null;
+  };
+  const deck = challenge.deck.slice();
+  for (let i = 0; i < deck.length; i++) {
+    if (fits(deck[i])) continue;
+    const kept = deck.filter((_, j) => j !== i);
+    const chains = new Set(kept.map(chain));
+    const candidates = data.pool
+      .map((p) => p.id)
+      .filter((id) => fits(id) && !kept.includes(id) && (chain(id) === null || !chains.has(chain(id))));
+    deck[i] = pickWeighted(rng, candidates, (x) => (data.familiar.has(x) ? 3 : 1));
   }
-  return null;
+  return { cells: challenge.cells.slice(), deck };
 }
 
 function shuffle<T>(rng: Rng, items: readonly T[]): T[] {

@@ -23,6 +23,7 @@ export type ConditionCategoryId =
   | "type"
   | "generation"
   | "classification"
+  | "gender"
   | "evolution"
   | "typing"
   | "forms"

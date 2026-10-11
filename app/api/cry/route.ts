@@ -1,4 +1,5 @@
 import { getCryAudio } from "@/lib/server/cry-service";
+import { todayNumber } from "@/lib/server/test-day";
 
 /**
  * Audio of one PokéCry round: /api/cry?day=<n>&round=<1-5>. The URL carries no
@@ -12,7 +13,7 @@ import { getCryAudio } from "@/lib/server/cry-service";
  */
 async function serve(request: Request, withBody: boolean): Promise<Response> {
   const params = new URL(request.url).searchParams;
-  const audio = await getCryAudio(Number(params.get("day")), Number(params.get("round")));
+  const audio = await getCryAudio(Number(params.get("day")), Number(params.get("round")), await todayNumber());
   if (!audio) return Response.json({ error: "Audio no disponible." }, { status: 404 });
 
   const size = audio.body.length;

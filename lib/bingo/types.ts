@@ -2,20 +2,24 @@ import type { PokemonSummary } from "@/lib/pokemon/types";
 
 export const BINGO_SIZE = 4;
 export const CELL_COUNT = BINGO_SIZE * BINGO_SIZE;
+/** Cards in the frozen opening sequence. After it, cards are dealt from the whole pool (discards are unlimited). */
 export const DECK_SIZE = 24;
-export const MAX_SKIPS = 3;
 
-/** Server-side daily challenge: 16 category ids (row-major) + the ordered deck. Secret. */
+/** Server-side daily challenge: 16 category ids (row-major) + the ordered opening deck. Secret. */
 export interface BingoChallenge {
   cells: string[];
   deck: number[];
 }
 
-/** A player move on the current card. */
-export type BingoMove = { type: "place"; cell: number } | { type: "skip" };
+/**
+ * A player move on the current card. Consecutive discards travel as one move
+ * with a `count` (default 1), so the history stays short however many
+ * Pokémon are discarded.
+ */
+export type BingoMove = { type: "place"; cell: number } | { type: "skip"; count?: number };
 
-export type BingoStatus = "playing" | "won" | "lost";
-export type BingoEndReason = "complete" | "deck-exhausted";
+export type BingoStatus = "playing" | "won";
+export type BingoEndReason = "complete";
 
 /** Client-safe description of a cell (the condition is visible to the player by design). */
 export interface BingoCellView {
@@ -24,15 +28,15 @@ export interface BingoCellView {
   short: string;
 }
 
-/** Client-safe game state. Only the CURRENT card is ever included — never the rest of the deck. */
+/** Client-safe game state. Only the CURRENT card is ever included — never the cards to come. */
 export interface BingoPublicState {
   placed: Array<PokemonSummary | null>;
   /** Cells where the CURRENT Pokémon was already tried and doesn't fit (shown as ERROR; no penalty). */
   wrongCells: number[];
-  skips: number;
-  /** 1-based number of the current card, e.g. "card 5 of 24". */
+  /** Pokémon discarded so far (free and unlimited). */
+  discards: number;
+  /** 1-based number of the Pokémon in play, counting every Pokémon presented so far. */
   cardNumber: number;
-  deckSize: number;
   current: PokemonSummary | null;
   status: BingoStatus;
   endReason?: BingoEndReason;
@@ -48,7 +52,7 @@ export type BingoResponse =
       ok: true;
       state: BingoPublicState;
       last: BingoLastResult | null;
-      /** Pokémon discarded for free after this move: they fit no free cell and no discards were left. */
-      autoDiscarded: PokemonSummary[];
+      /** Canonical (compacted) history to send back with the next move. */
+      moves: BingoMove[];
     }
   | { ok: false; message: string };

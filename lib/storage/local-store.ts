@@ -1,4 +1,5 @@
 import { useCallback, useSyncExternalStore } from "react";
+import { isTestDayClient, TEST_STORAGE_PREFIX } from "@/lib/daily/test-day";
 
 /**
  * Tiny typed localStorage store with React bindings (hydration-safe:
@@ -6,6 +7,9 @@ import { useCallback, useSyncExternalStore } from "react";
  */
 
 const listeners = new Set<() => void>();
+
+/** In the (development-only) test-day mode every key lives in a separate namespace. */
+const storageKey = (key: string) => (isTestDayClient() ? TEST_STORAGE_PREFIX + key : key);
 const cache = new Map<string, { raw: string | null; value: unknown }>();
 
 function subscribe(listener: () => void): () => void {
@@ -18,7 +22,8 @@ function subscribe(listener: () => void): () => void {
   };
 }
 
-export function readLocal<T>(key: string, fallback: T): T {
+export function readLocal<T>(logicalKey: string, fallback: T): T {
+  const key = storageKey(logicalKey);
   let raw: string | null = null;
   try {
     raw = window.localStorage.getItem(key);
@@ -41,7 +46,7 @@ export function readLocal<T>(key: string, fallback: T): T {
 
 export function writeLocal<T>(key: string, value: T): void {
   try {
-    window.localStorage.setItem(key, JSON.stringify(value));
+    window.localStorage.setItem(storageKey(key), JSON.stringify(value));
   } catch {
     // storage unavailable (private mode, quota): progress just won't persist
   }

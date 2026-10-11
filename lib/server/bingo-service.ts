@@ -18,13 +18,17 @@ function bingoKey(): Buffer | null {
   return platformKey ? deriveBingoKey(platformKey) : null;
 }
 
+/** Base-species pool + category members shared by generation and dealing (memoised). */
+export function getBingoData(): QuartetsData {
+  return (data ??= prepareQuartetsData(getPokedex().all));
+}
+
 /** Server-only access to the daily PokéBingo (memoised). The deck never leaves the server in bulk. */
 export function getDailyBingo(number: number): DailyBingo {
   let daily = cache.get(number);
   if (!daily) {
-    data ??= prepareQuartetsData(getPokedex().all);
     daily = resolveDailyBingo(number, {
-      data,
+      data: getBingoData(),
       store,
       key: bingoKey(),
       onWarning: (message) => console.warn(`[bingo] ${message}`),

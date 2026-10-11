@@ -1,25 +1,9 @@
 "use client";
 
-import { Dialog } from "@/components/ui/Dialog";
+import { Dialog, DialogHeader } from "@/components/ui/Dialog";
 import { StatGrid } from "@/components/ui/StatGrid";
 import { MAX_ATTEMPTS } from "@/lib/wordle/types";
 import type { WordleStats } from "../progress";
-
-function DialogHeader({ title, onClose }: { title: string; onClose: () => void }) {
-  return (
-    <div className="mt-1 mb-3 flex items-center justify-between gap-3">
-      <h2 className="text-lg font-black tracking-tight">{title}</h2>
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="Cerrar"
-        className="grid size-9 place-items-center rounded-full text-mist transition hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-sun-400"
-      >
-        ✕
-      </button>
-    </div>
-  );
-}
 
 function Example({ word, states }: { word: string; states: Array<"correct" | "present" | "absent" | null> }) {
   const tone = { correct: "bg-emerald-500 border-emerald-400", present: "bg-sun-400 border-sun-300 text-night-950", absent: "bg-slate-600/80 border-slate-500/40" };

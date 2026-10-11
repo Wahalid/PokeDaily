@@ -1,5 +1,7 @@
 /** PokéImpostor — shared types (server and client). */
 
+import type { PokemonType } from "@/lib/pokemon/types";
+
 export const BOARD_SIZE = 10;
 
 export type ImpostorMode = "normal" | "one-by-one";
@@ -18,6 +20,8 @@ export interface ImpostorChallenge {
 /** What the page sends to the browser before playing: never the impostors. */
 export interface ImpostorBoardView {
   title: string;
+  /** Types of a type / dual-type category, so the UI can show their badges (presentation only). */
+  types?: PokemonType[];
   short: string;
   note?: string;
   cards: Array<{ id: number; name: string; sprite: string | null }>;

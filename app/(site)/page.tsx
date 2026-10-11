@@ -1,45 +1,32 @@
 import { connection } from "next/server";
-import { currentChallengeNumber, formatChallengeNumber, formatDisplayDate, todayKey } from "@/lib/daily/calendar";
+import { dateForChallengeNumber, formatDisplayDate } from "@/lib/daily/calendar";
 import { GAMES } from "@/lib/games/registry";
-import { FeaturedGameCard } from "@/features/home/components/FeaturedGameCard";
+import { todayNumber } from "@/lib/server/test-day";
+import { GameCard } from "@/features/home/components/GameCard";
+import { HomeLandscape } from "@/features/home/components/HomeLandscape";
 import { HubHero } from "@/features/home/components/HubHero";
-import { UpcomingGameCard } from "@/features/home/components/UpcomingGameCard";
 
 export default async function HomePage() {
-  await connection(); // shows today's date and challenge number
-  const number = currentChallengeNumber();
+  await connection(); // shows today's date
+  const number = await todayNumber();
   const playable = GAMES.filter((g) => g.status === "playable");
-  const upcoming = GAMES.filter((g) => g.status === "coming-soon");
 
   return (
-    <div className="mx-auto max-w-5xl px-4 pt-10 pb-8 sm:pt-14 lg:pt-16">
-      <HubHero dateLabel={formatDisplayDate(todayKey())} />
+    <>
+      <HomeLandscape />
+      <div className="relative z-10 mx-auto max-w-[1124px] px-4 pt-10 pb-6 sm:pt-12 lg:pt-14">
+        <HubHero dateLabel={formatDisplayDate(dateForChallengeNumber(number))} />
 
-      <section aria-label="Play today" className="mt-10 grid gap-4 sm:mt-12">
-        {playable.map((game) => (
-          <FeaturedGameCard
-            key={game.id}
-            game={game}
-            challengeLabel={`Daily Challenge ${formatChallengeNumber(number)}`}
-          />
-        ))}
-      </section>
-
-      <section aria-labelledby="upcoming-heading" className="mt-10 sm:mt-12">
-        <div className="mb-4 flex items-baseline justify-between gap-4">
-          <h2 id="upcoming-heading" className="text-sm font-bold tracking-[0.15em] text-mist uppercase">
-            More games on the way
-          </h2>
-          <span className="hidden text-xs text-mist-dim sm:inline">{upcoming.length} in development</span>
-        </div>
-        <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-          {upcoming.map((game) => (
-            <li key={game.id}>
-              <UpcomingGameCard game={game} />
-            </li>
+        <section
+          id="games"
+          aria-label="Daily games"
+          className="mt-8 grid scroll-mt-24 grid-cols-1 gap-5 min-[560px]:grid-cols-2 sm:mt-10 lg:grid-cols-4"
+        >
+          {playable.map((game) => (
+            <GameCard key={game.id} game={game} />
           ))}
-        </ul>
-      </section>
-    </div>
+        </section>
+      </div>
+    </>
   );
 }

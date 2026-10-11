@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import { PokemonSprite } from "@/components/pokemon/PokemonSprite";
+import { PokemonTypeBadge } from "@/components/pokemon/PokemonTypeBadge";
 import type { GuessFeedback } from "@/lib/guess/types";
 import { formatDexNumber } from "@/lib/pokemon/format";
 import { COLOR_LABELS, COLUMN_LABELS, generationLabel, PHASE_LABELS, TYPE_LABELS } from "../labels";
@@ -26,13 +27,13 @@ export function GuessRow({ feedback, animate }: { feedback: GuessFeedback; anima
 
   return (
     <li
-      className={`grid grid-cols-5 gap-1.5 rounded-2xl border p-2 sm:grid-cols-[minmax(0,1.5fr)_repeat(5,minmax(0,1fr))] sm:gap-2 sm:border-0 sm:bg-transparent sm:p-0 ${
+      className={`grid grid-cols-6 gap-1.5 rounded-2xl border p-2 sm:grid-cols-[minmax(0,1.5fr)_repeat(5,minmax(0,1fr))] sm:gap-2 sm:border-0 sm:bg-transparent sm:p-0 ${
         feedback.correct ? "border-emerald-400/40 bg-emerald-500/5" : "border-white/10 bg-night-800/60"
       }`}
     >
       {/* Pokémon */}
       <div
-        className={`col-span-5 flex items-center gap-2 rounded-xl sm:col-span-1 sm:border sm:px-2 sm:py-1.5 ${
+        className={`col-span-6 flex items-center gap-2 rounded-xl sm:col-span-1 sm:border sm:px-2 sm:py-1.5 ${
           feedback.correct ? "sm:border-emerald-400/50 sm:bg-emerald-500/15" : "sm:border-white/10 sm:bg-night-800"
         }`}
       >
@@ -41,12 +42,13 @@ export function GuessRow({ feedback, animate }: { feedback: GuessFeedback; anima
         {feedback.correct && <span className="ml-auto text-sm sm:hidden">🎉</span>}
       </div>
 
-      <Tile label={COLUMN_LABELS[1]} status={typeStatus} className={reveal} style={delay(0)}>
-        <span className="flex flex-col items-center gap-0.5">
+      {/* Phones: the types tile is two columns wide so the badges stay legible. */}
+      <Tile label={COLUMN_LABELS[1]} status={typeStatus} className={`col-span-2 sm:col-span-1 ${reveal}`} style={delay(0)}>
+        <span className="flex w-full flex-col items-center gap-1">
           {types.map((t) => (
-            <span key={t.type} className="flex items-center gap-1 whitespace-nowrap">
-              <span aria-hidden className="text-[9px] sm:text-[11px]">{t.match ? "🟩" : "❌"}</span>
-              {TYPE_LABELS[t.type]}
+            <span key={t.type} className="flex w-full min-w-0 items-center justify-center gap-0.5 sm:gap-1">
+              <span aria-hidden className="shrink-0 text-[9px] sm:text-[11px]">{t.match ? "🟩" : "❌"}</span>
+              <PokemonTypeBadge type={t.type} alt={TYPE_LABELS[t.type]} size="sm" className="min-w-0" />
               <span className="sr-only">{t.match ? "(coincide)" : "(no coincide)"}</span>
             </span>
           ))}

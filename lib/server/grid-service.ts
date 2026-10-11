@@ -30,7 +30,7 @@ export function getTodaysGrid(now: Date = new Date()): DailyGrid {
   return getDailyGrid(currentChallengeNumber(now));
 }
 
-/** Only today's and past challenges are playable. */
-export function isPlayableChallenge(number: number, now: Date = new Date()): boolean {
-  return Number.isInteger(number) && number >= 1 && number <= currentChallengeNumber(now);
+/** Only today's and past challenges are playable (`today` = the server's current challenge number). */
+export function isPlayableChallenge(number: number, today: number = currentChallengeNumber()): boolean {
+  return Number.isInteger(number) && number >= 1 && number <= today;
 }

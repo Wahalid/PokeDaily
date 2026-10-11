@@ -2,16 +2,20 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
+import { Pill } from "@/components/ui/Pill";
+import { GameToolbar } from "@/components/ui/GameToolbar";
+import { GameStatus, type StatusMessage } from "@/components/ui/GameStatus";
 import { initialImpostorState } from "@/lib/impostor/play";
 import { BOARD_SIZE, type ImpostorBoardView, type ImpostorMode, type ImpostorMoves, type Verdict } from "@/lib/impostor/types";
 import { submitImpostorMoves } from "../actions";
 import { recordImpostorResult, useImpostorProgress, useImpostorStats, type StoredImpostor } from "../progress";
 import { buildImpostorShareText, cardOutcomes, MODE_LABELS } from "../share";
+import { CategoryTitle } from "./CategoryTitle";
 import { ImpostorCard, type CardLook } from "./ImpostorCard";
 import { ImpostorHelpDialog, ImpostorStatsDialog } from "./ImpostorDialogs";
 import { ImpostorResult } from "./ImpostorResult";
 
-type Message = { text: string; tone: "good" | "bad" | "info"; key: number };
+type Message = StatusMessage;
 
 /** Interactive daily PokéImpostor: mode choice → board (normal) or card-by-card (one-by-one) → result. */
 export function ImpostorGame({ challengeNumber, progressKey, board }: { challengeNumber: number; progressKey: string; board: ImpostorBoardView }) {
@@ -98,21 +102,16 @@ export function ImpostorGame({ challengeNumber, progressKey, board }: { challeng
 
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="flex justify-center gap-2">
-        <Button variant="ghost" className="px-3 py-1.5" onClick={() => setDialog("help")}>
-          <span aria-hidden>?</span> Ayuda
-        </Button>
-        <Button variant="ghost" className="px-3 py-1.5" onClick={() => setDialog("stats")}>
-          <span aria-hidden>▤</span> Estadísticas
-        </Button>
-      </div>
+      <GameToolbar onHelp={() => setDialog("help")} onStats={() => setDialog("stats")} />
 
       <section
         aria-label="Categoría del día"
-        className="mx-auto mt-3 max-w-xl rounded-3xl border border-white/10 bg-night-800/80 p-4 text-center shadow-[0_16px_40px_-20px_rgb(0_0_0/0.7)]"
+        className="panel mx-auto mt-3 max-w-xl p-4 text-center"
       >
         <p className="text-xs font-bold tracking-[0.15em] text-mist uppercase">Categoría del día</p>
-        <p className="mt-1 text-xl leading-snug font-black text-balance text-sun-300 uppercase sm:text-2xl">{board.title}</p>
+        <p className="mt-1 text-xl leading-snug font-black text-balance text-sun-300 uppercase sm:text-2xl">
+          <CategoryTitle title={board.title} types={board.types} size="lg" />
+        </p>
         {board.note && <p className="mt-1.5 text-xs text-mist-dim">{board.note}</p>}
         <p className="mt-2 text-sm text-mist">
           Hay <strong className="text-ember-300">{board.impostorCount} impostores</strong> entre estos {BOARD_SIZE} Pokémon.
@@ -125,7 +124,7 @@ export function ImpostorGame({ challengeNumber, progressKey, board }: { challeng
           <button
             type="button"
             onClick={() => chooseMode("normal")}
-            className="rounded-3xl border border-brand-500/40 bg-gradient-to-br from-night-700 to-night-800 p-5 text-left transition hover:-translate-y-0.5 hover:border-brand-300/60 focus-visible:outline-2 focus-visible:outline-sun-400"
+            className="panel p-5 text-left transition hover:[--panel-border:rgb(143_169_255/0.55)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sun-400 motion-safe:hover:-translate-y-0.5"
           >
             <p className="text-lg font-black">Modo Normal</p>
             <p className="mt-1 text-sm text-mist">Ves los 10 a la vez, seleccionas los correctos y compruebas.</p>
@@ -133,7 +132,7 @@ export function ImpostorGame({ challengeNumber, progressKey, board }: { challeng
           <button
             type="button"
             onClick={() => chooseMode("one-by-one")}
-            className="rounded-3xl border border-ember-500/40 bg-gradient-to-br from-night-700 to-night-800 p-5 text-left transition hover:-translate-y-0.5 hover:border-ember-300/60 focus-visible:outline-2 focus-visible:outline-sun-400"
+            className="panel panel-loss p-5 text-left transition hover:[--panel-border:rgb(255_138_142/0.6)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sun-400 motion-safe:hover:-translate-y-0.5"
           >
             <p className="text-lg font-black">
               Uno a uno <span className="ml-1 rounded-full bg-ember-500/20 px-2 py-0.5 align-middle text-xs text-ember-300">Difícil</span>
@@ -147,13 +146,13 @@ export function ImpostorGame({ challengeNumber, progressKey, board }: { challeng
       {mode && playing && (
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-sm font-bold">
           {mode === "normal" ? (
-            <span className="rounded-full bg-night-800/80 px-3 py-1 text-mist ring-1 ring-white/10">
+            <Pill>
               Seleccionados <span className="text-white tabular-nums">{progress.selection.length}</span> · correctos: {correctTotal}
-            </span>
+            </Pill>
           ) : (
-            <span className="rounded-full bg-night-800/80 px-3 py-1 text-mist ring-1 ring-white/10">
+            <Pill>
               <span className="text-white tabular-nums">{Math.min(index + 1, BOARD_SIZE)}</span> / {BOARD_SIZE}
-            </span>
+            </Pill>
           )}
           <Button variant="secondary" className="px-3 py-1" disabled={progress.help || pending} onClick={takeHint}>
             💡 {progress.help ? "Pista usada" : "Pista (1)"}
@@ -161,22 +160,7 @@ export function ImpostorGame({ challengeNumber, progressKey, board }: { challeng
         </div>
       )}
 
-      <p aria-live="polite" className="mt-2 min-h-6 text-center text-sm font-bold">
-        {pending ? (
-          <span className="text-xs text-mist-dim">Comprobando…</span>
-        ) : (
-          message && (
-            <span
-              key={message.key}
-              className={`inline-block animate-fade-up rounded-full px-3 py-0.5 ${
-                message.tone === "good" ? "bg-emerald-500/15 text-emerald-300" : message.tone === "bad" ? "bg-ember-500/15 text-ember-300" : "bg-white/10 text-mist"
-              } ${message.tone === "bad" ? "animate-shake" : ""}`}
-            >
-              {message.text}
-            </span>
-          )
-        )}
-      </p>
+      <GameStatus message={message} pending={pending} className="mt-2" />
 
       {mode === "one-by-one" && current && (
         <div className="mx-auto mt-1 max-w-sm">
@@ -248,6 +232,7 @@ export function ImpostorGame({ challengeNumber, progressKey, board }: { challeng
         <ImpostorResult
           won={state.status === "won"}
           category={board.title}
+          categoryTypes={board.types}
           score={state.score}
           correctTotal={correctTotal}
           correctFound={

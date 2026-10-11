@@ -37,7 +37,26 @@ export const PARADOX = new Set<number>([
   ...range(1020, 1023),
 ]);
 
-export const ULTRA_BEASTS = new Set<number>([...range(793, 799), ...range(803, 806)]);
+/**
+ * Pseudo-legendary lines: three-stage lines whose final member has a base
+ * stat total of exactly 600 and is neither Legendary nor Mythical. The whole
+ * line is included (like STARTERS / FOSSILS). `npm run verify` re-derives
+ * the finals from the data and checks this list against them.
+ */
+export const PSEUDO_LEGENDARIES = new Set<number>([
+  ...range(147, 149), // Dratini → Dragonite
+  ...range(246, 248), // Larvitar → Tyranitar
+  ...range(371, 373), // Bagon → Salamence
+  ...range(374, 376), // Beldum → Metagross
+  ...range(443, 445), // Gible → Garchomp
+  ...range(633, 635), // Deino → Hydreigon
+  ...range(704, 706), // Goomy → Goodra
+  ...range(782, 784), // Jangmo-o → Kommo-o
+  ...range(885, 887), // Dreepy → Dragapult
+  ...range(996, 998), // Frigibax → Baxcalibur
+]);
+
+export const ULTRA_BEASTS =new Set<number>([...range(793, 799), ...range(803, 806)]);
 
 export const REGION_BY_GENERATION = [
   "kanto",

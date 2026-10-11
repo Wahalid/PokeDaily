@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { PokemonSprite } from "@/components/pokemon/PokemonSprite";
 import { Button } from "@/components/ui/Button";
+import { GameToolbar } from "@/components/ui/GameToolbar";
 import { CRY_ROUNDS, VOID_CHOICE, type CryPublicState, type CryResult } from "@/lib/cry/types";
 import { submitCryChoices } from "../actions";
 import { recordCryResult, useCryProgress, useCryStats } from "../progress";
@@ -51,14 +52,7 @@ export function CryGame({ challengeNumber, progressKey, initialState }: { challe
 
   return (
     <div className="mx-auto max-w-xl">
-      <div className="flex justify-center gap-2">
-        <Button variant="ghost" className="px-3 py-1.5" onClick={() => setDialog("help")}>
-          <span aria-hidden>?</span> Ayuda
-        </Button>
-        <Button variant="ghost" className="px-3 py-1.5" onClick={() => setDialog("stats")}>
-          <span aria-hidden>▤</span> Estadísticas
-        </Button>
-      </div>
+      <GameToolbar onHelp={() => setDialog("help")} onStats={() => setDialog("stats")} />
 
       <div className="mt-3 flex items-center justify-between gap-3">
         <p className="text-sm font-black tracking-wider text-sun-300">

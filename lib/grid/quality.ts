@@ -102,7 +102,13 @@ interface RuleContext {
   config: QualityConfig;
 }
 
-type Rule = { name: string; level: RuleLevel; check: (ctx: RuleContext) => boolean };
+type Rule = {
+  name: string;
+  level: RuleLevel;
+  /** Generator version that introduced the rule; older frozen grids are judged without it. */
+  since?: string;
+  check: (ctx: RuleContext) => boolean;
+};
 
 const poolOf = (data: QualityData, id: string) => data.poolSize.get(id) ?? data.pokemon.filter(getCondition(id).test).length;
 const conditionIds = (e: GridEvaluation) => [...e.definition.rows, ...e.definition.columns];
@@ -136,6 +142,15 @@ export function isViableCell(rowId: string, columnId: string, data: QualityData,
     familiar >= config.minFamiliarAnswersPerCell &&
     answers / Math.min(poolOf(data, rowId), poolOf(data, columnId)) < config.maxContainment
   );
+}
+
+/**
+ * Two conditions on the same axis where one (nearly) implies the other, e.g.
+ * Legendary and No Evolution (~90% of Legendaries never evolve): the rows or
+ * columns would ask almost the same question twice.
+ */
+export function isRedundantPair(a: string, b: string, data: QualityData, config: QualityConfig = DEFAULT_QUALITY): boolean {
+  return pairStats(a, b, data).answers / Math.min(poolOf(data, a), poolOf(data, b)) >= config.maxContainment;
 }
 
 /** Condition-level facts the generator also enforces while drawing (cheaper than rejecting later). */
@@ -173,6 +188,15 @@ export const QUALITY_RULES: readonly Rule[] = [
     check: ({ evaluation, data, config }) =>
       evaluation.cells.every(
         (c) => c.answers.length / Math.min(poolOf(data, c.rowId), poolOf(data, c.columnId)) < config.maxContainment,
+      ),
+  },
+  {
+    name: "redundant-conditions-on-an-axis",
+    level: "fair",
+    since: "2.1.0",
+    check: ({ evaluation, data, config }) =>
+      [evaluation.definition.rows, evaluation.definition.columns].every((axis) =>
+        axis.every((a, i) => axis.slice(i + 1).every((b) => !isRedundantPair(a, b, data, config))),
       ),
   },
   {
@@ -219,16 +243,33 @@ export interface QualityReport {
   difficulty: GridDifficulty;
 }
 
-/** Checks a candidate against all rules up to (and including) `level`. */
+/** "2.10.0" > "2.9.0". */
+export function compareVersions(a: string, b: string): number {
+  const pa = a.split(".").map(Number), pb = b.split(".").map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] ?? 0) - (pb[i] ?? 0);
+    if (d) return Math.sign(d);
+  }
+  return 0;
+}
+
+/**
+ * Checks a candidate against all rules up to (and including) `level`.
+ * `rulesVersion` (a frozen grid's generator version) skips rules added after it.
+ */
 export function assessGrid(
   definition: GridDefinition,
   data: QualityData,
   config: QualityConfig = DEFAULT_QUALITY,
   level: RuleLevel = "balanced",
+  rulesVersion?: string,
 ): QualityReport {
   const evaluation = evaluateFast(definition, data);
   const difficulty = scoreGrid(evaluation.cells.map((c) => c.answers.length));
   const ctx: RuleContext = { evaluation, difficulty, data, config };
-  const failed = QUALITY_RULES.find((rule) => LEVEL_ORDER[rule.level] <= LEVEL_ORDER[level] && !rule.check(ctx));
+  const applies = (rule: Rule) => !rule.since || !rulesVersion || compareVersions(rule.since, rulesVersion) <= 0;
+  const failed = QUALITY_RULES.find(
+    (rule) => LEVEL_ORDER[rule.level] <= LEVEL_ORDER[level] && applies(rule) && !rule.check(ctx),
+  );
   return { rejection: failed?.name ?? null, evaluation, difficulty };
 }

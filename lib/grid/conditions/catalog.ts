@@ -11,11 +11,13 @@ import type { ConditionCategory, GridCondition } from "./types";
 export const CONDITION_CATEGORIES: ConditionCategory[] = [
   { id: "type", label: "Type", weight: 5, allowOnBothAxes: true },
   { id: "generation", label: "Generation", weight: 3, allowOnBothAxes: false },
-  { id: "classification", label: "Classification", weight: 1.2, allowOnBothAxes: false },
-  { id: "evolution", label: "Evolution", weight: 1, allowOnBothAxes: false },
+  // Weights scale with the number of conditions so each existing condition keeps its old draw weight.
+  { id: "classification", label: "Classification", weight: 1.6, allowOnBothAxes: false },
+  { id: "gender", label: "Gender", weight: 0.25, allowOnBothAxes: false },
+  { id: "evolution", label: "Evolution", weight: 4 / 3, allowOnBothAxes: false },
   { id: "typing", label: "Typing", weight: 0.5, allowOnBothAxes: false },
   { id: "forms", label: "Forms", weight: 0.8, allowOnBothAxes: false },
-  { id: "stats", label: "Stats", weight: 1, allowOnBothAxes: false, knowledgeHeavy: true },
+  { id: "stats", label: "Stats", weight: 1.25, allowOnBothAxes: false, knowledgeHeavy: true },
   { id: "physical", label: "Size", weight: 0.6, allowOnBothAxes: false, knowledgeHeavy: true },
 ];
 
@@ -93,13 +95,25 @@ export const CONDITIONS: GridCondition[] = [
   flagCondition("fossil", "isFossil", "Fossil", "Revived from a fossil (or its evolutions)"),
   flagCondition("paradox", "isParadox", "Paradox", "Paradox Pokémon"),
   flagCondition("ultra-beast", "isUltraBeast", "Ultra Beast", "Ultra Beasts"),
+  // PokéAPI's official is_baby classification.
+  flagCondition("baby", "isBaby", "Baby Pokémon", "Officially classified as a Baby Pokémon"),
+  // Whole lines, like Starter (see PSEUDO_LEGENDARIES in scripts/pokeapi/curated.ts).
+  flagCondition("pseudo-legendary", "isPseudoLegendary", "Pseudo-Legendary", "A pseudo-legendary Pokémon or its pre-evolutions"),
+
+  // Only a known genderless rate counts; unknown (null) gender data never matches.
+  custom("gender:genderless", "gender", "Genderless", "Has no gender", (p) => p.genderRate === -1),
 
   custom("evo:first-stage", "evolution", "First Stage", "Unevolved Pokémon that can evolve",
     (p) => p.evolution.stage === 1 && p.evolution.evolvesTo.length > 0),
   custom("evo:final-stage", "evolution", "Final Evolution", "Fully evolved member of an evolution line",
     (p) => p.evolution.hasEvolutionFamily && p.evolution.evolvesTo.length === 0),
-  custom("evo:none", "evolution", "No Evolution", "Does not evolve at all",
+  // "Never evolves": neither evolves nor evolves from another species (family of one, lineStages 1).
+  custom("evo:none", "evolution", "No Evolution", "Never evolves and does not evolve from another Pokémon",
     (p) => !p.evolution.hasEvolutionFamily),
+  // On a three-stage branch of its family (Applin and Dipplin yes, Flapple no). Species-level:
+  // regional-only evolutions count (Zigzagoon → Linoone → Obstagoon), baby stages count (Pichu).
+  custom("evo:three-stage", "evolution", "Three-Stage Line", "Part of a three-stage evolution line",
+    (p) => p.evolution.lineStages >= 3),
 
   custom("typing:mono", "typing", "Single Type", "Has exactly one type", (p) => p.types.length === 1),
   custom("typing:dual", "typing", "Dual Type", "Has two types", (p) => p.types.length === 2),
@@ -109,6 +123,7 @@ export const CONDITIONS: GridCondition[] = [
   formCondition("regional", "Regional Form", "Has a regional variant"),
 
   statAtLeast("total", 500, "BST 500+", "Base stat total"),
+  statAtLeast("total", 600, "BST 600+", "Base stat total"),
   statAtLeast("speed", 100, "Speed 100+", "Base Speed"),
   statAtLeast("attack", 120, "Attack 120+", "Base Attack"),
   statAtLeast("hp", 100, "HP 100+", "Base HP"),

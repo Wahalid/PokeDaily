@@ -101,6 +101,13 @@ export interface PokemonEvolution {
   evolvesTo: number[];
   /** True when the Pokémon belongs to a family with more than one member. */
   hasEvolutionFamily: boolean;
+  /**
+   * Stages of the longest evolution line passing through this species
+   * (base → … → final, following its own branch): 1 = never evolves,
+   * 2 = two-stage line, 3 = three-stage line. Eevee is 2; Applin is 3
+   * (Applin → Dipplin → Hydrapple) but Flapple is 2 (Applin → Flapple).
+   */
+  lineStages: number;
 }
 
 export type PokemonFormKind = "mega" | "gigantamax" | "regional" | "other";
@@ -121,6 +128,8 @@ export interface PokemonFlags {
   isFossil: boolean;
   isParadox: boolean;
   isUltraBeast: boolean;
+  /** Pseudo-legendary evolution line (Dratini → Dragonite, …), see scripts/pokeapi/curated.ts. */
+  isPseudoLegendary: boolean;
 }
 
 export interface Pokemon {
@@ -136,6 +145,12 @@ export interface Pokemon {
   color: PokemonColor;
   abilities: PokemonAbility[];
   stats: PokemonStats;
+  /**
+   * Chance of being female in eighths (PokéAPI `gender_rate`): 0 = always
+   * male, 8 = always female, -1 = genderless. null = unknown (no data) —
+   * never treat that as genderless.
+   */
+  genderRate: number | null;
   /** Decimetres (PokéAPI unit). */
   height: number;
   /** Hectograms (PokéAPI unit). */

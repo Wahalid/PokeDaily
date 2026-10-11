@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { Button } from "@/components/ui/Button";
+import { GameToolbar } from "@/components/ui/GameToolbar";
+import { GameStatus } from "@/components/ui/GameStatus";
 import { keyboardStates } from "@/lib/wordle/compare";
 import { MAX_ATTEMPTS, type WordlePublicState } from "@/lib/wordle/types";
 import { normalizeName } from "@/lib/wordle/words";
@@ -90,14 +91,7 @@ export function WordleGame({
 
   return (
     <div className="mx-auto max-w-xl">
-      <div className="flex justify-center gap-2">
-        <Button variant="ghost" className="px-3 py-1.5" onClick={() => setDialog("help")}>
-          <span aria-hidden>?</span> Ayuda
-        </Button>
-        <Button variant="ghost" className="px-3 py-1.5" onClick={() => setDialog("stats")}>
-          <span aria-hidden>▤</span> Estadísticas
-        </Button>
-      </div>
+      <GameToolbar onHelp={() => setDialog("help")} onStats={() => setDialog("stats")} />
 
       <p className="mt-1 text-center text-xs font-semibold text-mist">
         <span className="text-white tabular-nums">{state.length}</span> letras ·{" "}
@@ -115,17 +109,7 @@ export function WordleGame({
         />
       </div>
 
-      <p aria-live="polite" className="mt-2 min-h-7 text-center text-sm font-bold">
-        {pending ? (
-          <span className="text-xs text-mist-dim">Comprobando…</span>
-        ) : (
-          message && (
-            <span key={message.key} className="inline-block animate-fade-up rounded-full bg-ember-500/15 px-3 py-0.5 text-ember-300">
-              {message.text}
-            </span>
-          )
-        )}
-      </p>
+      <GameStatus message={message && { ...message, tone: "bad" }} pending={pending} className="mt-2" />
 
       <div className="mt-1">
         {playing ? (

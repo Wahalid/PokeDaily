@@ -51,7 +51,7 @@ export function GridGame({
     <div>
       <Progress filled={filledCount} />
 
-      <div className="mx-auto mt-4 max-w-xl">
+      <div className="mt-4">
         <GridBoard
           grid={grid}
           cells={cells}

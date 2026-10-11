@@ -7,6 +7,7 @@ import {
   DEFAULT_QUALITY,
   isBroadCondition,
   isKnowledgeHeavyCondition,
+  isRedundantPair,
   isViableCell,
   pairStats,
   prepareQualityData,
@@ -21,7 +22,7 @@ import { GRID_SIZE, type GridDefinition } from "./types";
  * Bump whenever drawing, weights, rules or the condition catalogue change in
  * a way that alters output. Frozen grids record the version that made them.
  */
-export const GENERATOR_VERSION = "2.0.0";
+export const GENERATOR_VERSION = "2.1.0";
 
 export interface RecencyConfig {
   /** Conditions used within this many previous days are excluded outright. */
@@ -42,7 +43,7 @@ export interface RecencyConfig {
 
 /**
  * Tuned on the real data over 365 sequential days:
- * - a strict 7-day exclusion is infeasible (48 conditions × 6 per day; ~50% of days fell back);
+ * - a strict 7-day exclusion is infeasible (48 conditions at the time × 6 per day; ~50% of days fell back);
  * - so: exclude the last 3 days, keep 5% weight for days 4–7, full weight from day 8;
  * - and reject any grid sharing 4+ conditions with a grid of the last 30 days
  *   (without this guard the 7-day cut-off produced repeating 8-day cycles).
@@ -244,6 +245,8 @@ type CanAdd = (selected: readonly GridCondition[], candidate: GridCondition) => 
 interface DrawConstraints {
   canAdd: CanAdd;
   cellOk: (row: GridCondition, column: GridCondition) => boolean;
+  /** Whether two conditions may share an axis. */
+  sameAxisOk: (a: GridCondition, b: GridCondition) => boolean;
 }
 
 /**
@@ -265,6 +268,7 @@ function drawConstraints(data: QualityData, quality: QualityConfig, level: RuleL
       strict
         ? isViableCell(row.id, column.id, data, quality)
         : pairStats(row.id, column.id, data).answers >= Math.max(1, quality.minAnswersPerCell),
+    sameAxisOk: (a, b) => !strict || !isRedundantPair(a.id, b.id, data, quality),
   };
 }
 
@@ -274,8 +278,8 @@ function drawDefinition(
   weights: ReadonlyMap<string, number>,
   constraints: DrawConstraints,
 ): GridDefinition | null {
-  const { canAdd, cellOk } = constraints;
-  const rows = drawAxis(rng, pool, weights, [], canAdd);
+  const { cellOk } = constraints;
+  const rows = drawAxis(rng, pool, weights, [], constraints);
   if (!rows) return null;
 
   const rowCategories = new Set(rows.map((c) => c.category));
@@ -285,7 +289,7 @@ function drawDefinition(
       (getCategory(c.category).allowOnBothAxes || !rowCategories.has(c.category)) &&
       rows.every((row) => cellOk(row, c)),
   );
-  const columns = drawAxis(rng, columnPool, weights, rows, canAdd);
+  const columns = drawAxis(rng, columnPool, weights, rows, constraints);
   if (!columns) return null;
 
   return { rows: rows.map((c) => c.id), columns: columns.map((c) => c.id) };
@@ -296,13 +300,17 @@ function drawAxis(
   pool: readonly GridCondition[],
   weights: ReadonlyMap<string, number>,
   taken: readonly GridCondition[],
-  canAdd: CanAdd,
+  { canAdd, sameAxisOk }: DrawConstraints,
 ): GridCondition[] | null {
   const picked: GridCondition[] = [];
   for (let i = 0; i < GRID_SIZE; i++) {
     const selected = [...taken, ...picked];
     const available = pool.filter(
-      (c) => !selected.includes(c) && (weights.get(c.id) ?? 0) > 0 && canAdd(selected, c),
+      (c) =>
+        !selected.includes(c) &&
+        (weights.get(c.id) ?? 0) > 0 &&
+        canAdd(selected, c) &&
+        picked.every((p) => sameAxisOk(p, c)),
     );
     if (available.length === 0) return null;
     picked.push(pickWeighted(rng, available, (c) => weights.get(c.id)!));

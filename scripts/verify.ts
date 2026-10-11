@@ -4,16 +4,18 @@
 import assert from "node:assert/strict";
 import { createJsonChallengeStore, type StoredChallenge } from "../lib/daily/challenge-store";
 import { challengeNumberForDate, currentChallengeNumber, dateForChallengeNumber, formatDisplayDate } from "../lib/daily/calendar";
-import { getAllConditions } from "../lib/grid/conditions/registry";
+import { getAllConditions, getCondition } from "../lib/grid/conditions/registry";
 import { dailyGridSeed, generateDailyGrid, recentDaysBefore, resolveDailyGrid } from "../lib/grid/daily";
 import { evaluateGrid, hasDistinctSolution, satisfiesCell, validateAnswer } from "../lib/grid/engine";
 import { buildShareText } from "../features/grid/share";
+import { CLAUSE_IMAGES, clauseImageSrc } from "../features/grid/clause-images";
 import { validateFrozenGrid, type FrozenGrid } from "../lib/grid/frozen";
-import { GENERATOR_VERSION, generateGrid, generateGridSafe, gridConditionIds, SAFE_GRID } from "../lib/grid/generator";
-import { assessGrid, isKnowledgeHeavyCondition, isViableCell, prepareQualityData } from "../lib/grid/quality";
+import { GENERATOR_VERSION, generateGrid, generateGridSafe, GridGenerationError, gridConditionIds, SAFE_GRID } from "../lib/grid/generator";
+import { createRng, pickOne } from "../lib/random";
+import { assessGrid, isKnowledgeHeavyCondition, isRedundantPair, isViableCell, prepareQualityData } from "../lib/grid/quality";
 import { gridKey } from "../lib/grid/types";
 import { buildSearchIndex, searchPokemon } from "../lib/pokemon/search";
-import { POKEMON_COLORS } from "../lib/pokemon/types";
+import { POKEMON_COLORS, type Pokemon } from "../lib/pokemon/types";
 import { compareGuess, evolutionPhase } from "../lib/guess/compare";
 import { GUESS_VERSION, guessOrder, isGuessable, pickDailyGuess, resolveDailyGuess, type FrozenGuess } from "../lib/guess/daily";
 import { decryptAnswer, encryptAnswer, generateGuessKey, GUESS_KEY_ENV, parseGuessKey, secretOrderSeed } from "../lib/guess/secret";
@@ -34,10 +36,10 @@ import type { QuartetBoard } from "../lib/quartets/types";
 import { quartetsStatus } from "../features/quartets/use-quartets-progress";
 import { buildQuartetsShareText } from "../features/quartets/share";
 import { generateDailyBingo, resolveDailyBingo, type FrozenBingo } from "../lib/bingo/daily";
-import { analyzeBingo, DEFAULT_BINGO_RECENCY, PERFECT_WINDOW, SAFE_BINGO } from "../lib/bingo/generator";
-import { fitsCell, playBingo } from "../lib/bingo/play";
+import { analyzeBingo, DEFAULT_BINGO_RECENCY, isAlwaysCompletable, repairDeadCards, SAFE_BINGO } from "../lib/bingo/generator";
+import { fitsCell, MAX_HISTORY, playBingo } from "../lib/bingo/play";
 import { deriveBingoKey, openBingo, sealBingo } from "../lib/bingo/secret";
-import { CELL_COUNT, DECK_SIZE, MAX_SKIPS, type BingoChallenge, type BingoMove } from "../lib/bingo/types";
+import { CELL_COUNT, DECK_SIZE, type BingoChallenge, type BingoMove, type BingoPublicState, type BingoResponse } from "../lib/bingo/types";
 import { bingoStorageKey, computeBingoStats, restoreBingo } from "../features/bingo/progress";
 import { buildBingoShareText } from "../features/bingo/share";
 import { generateDailyTop10, resolveDailyTop10, type FrozenTop10 } from "../lib/top10/daily";
@@ -81,6 +83,7 @@ import {
   recencyProblems,
 } from "../lib/impostor/generator";
 import { boardView, initialImpostorState, playImpostor } from "../lib/impostor/play";
+import { TYPE_LABELS } from "../lib/pokemon/labels-es";
 import { deriveImpostorKey, openImpostor, sealImpostor } from "../lib/impostor/secret";
 import { BOARD_SIZE, type ImpostorChallenge, type Verdict } from "../lib/impostor/types";
 import { computeImpostorStats, impostorStorageKey, restoreImpostor } from "../features/impostor/progress";
@@ -165,8 +168,104 @@ check("distinct-solution check rejects unsatisfiable grids", () => {
   assert.equal(hasDistinctSolution([[1], [1]]), false);
   assert.equal(hasDistinctSolution([[1, 2], [1]]), true);
 });
+check("every non-type condition has its badge in public/pokemon_grid_clauses/ (and only those)", () => {
+  const nonType = getAllConditions().filter((c) => c.category !== "type").map((c) => c.id);
+  assert.deepEqual(Object.keys(CLAUSE_IMAGES).sort(), [...nonType].sort());
+  for (const id of nonType) {
+    const src = clauseImageSrc(id)!;
+    assert.ok(existsSync(path.join("public", src)), `${id}: missing ${src}`);
+  }
+  assert.equal(getAllConditions().filter((c) => c.category === "type").length, 18);
+});
 check("every catalogue condition matches at least one Pokémon", () => {
   for (const c of getAllConditions()) assert.ok(pokedex.all.some(c.test), `${c.id} matches nothing`);
+});
+
+console.log("Grid conditions");
+const matching = (id: string) => pokedex.all.filter(getCondition(id).test).map((p) => p.name);
+const passes = (id: string, name: string) => getCondition(id).test(byName(name));
+check("BST is the sum of the six base stats; BST 600+ uses it", () => {
+  for (const { name, stats: s } of pokedex.all) {
+    assert.equal(s.total, s.hp + s.attack + s.defense + s.specialAttack + s.specialDefense + s.speed, name);
+  }
+  assert.ok(passes("stat:total>=600", "Dragonite") && passes("stat:total>=600", "Slaking") && passes("stat:total>=600", "Mewtwo"));
+  assert.ok(!passes("stat:total>=600", "Gardevoir") && !passes("stat:total>=600", "Dratini"));
+  assert.deepEqual(matching("stat:total>=600"), pokedex.all.filter((p) => p.stats.total >= 600).map((p) => p.name));
+});
+check("Genderless: only a known genderless rate counts, unknown gender data never does", () => {
+  assert.ok(
+    pokedex.all.every((p) => p.genderRate !== null && Number.isInteger(p.genderRate) && p.genderRate >= -1 && p.genderRate <= 8),
+    "every species has known gender data",
+  );
+  for (const name of ["Magnemite", "Ditto", "Mewtwo", "Staryu", "Cosmog"]) assert.ok(passes("gender:genderless", name), name);
+  // always-female (8), always-male (0) and mixed species have a gender
+  for (const name of ["Chansey", "Tauros", "Pikachu"]) assert.ok(!passes("gender:genderless", name), name);
+  const unknown: Pokemon = { ...byName("Magnemite"), genderRate: null };
+  assert.equal(getCondition("gender:genderless").test(unknown), false, "unknown gender must not count as genderless");
+});
+check("Baby Pokémon follows the official is_baby classification", () => {
+  assert.deepEqual(matching("flag:baby"), pokedex.all.filter((p) => p.flags.isBaby).map((p) => p.name));
+  assert.deepEqual(matching("flag:baby"), [
+    "Pichu", "Cleffa", "Igglybuff", "Togepi", "Tyrogue", "Smoochum", "Elekid", "Magby", "Azurill", "Wynaut",
+    "Budew", "Chingling", "Bonsly", "Mime Jr.", "Happiny", "Munchlax", "Riolu", "Mantyke", "Toxel",
+  ]);
+  // consistent with the evolution data: every baby is an unevolved Pokémon that evolves
+  for (const p of pokedex.all.filter((p) => p.flags.isBaby)) {
+    assert.ok(p.evolution.stage === 1 && p.evolution.evolvesTo.length > 0, p.name);
+  }
+});
+check("Pseudo-Legendary = whole lines of the non-legendary three-stage lines ending in exactly 600 BST", () => {
+  const finals = pokedex.all.filter(
+    (p) => p.evolution.stage === 3 && p.stats.total === 600 && !p.flags.isLegendary && !p.flags.isMythical,
+  );
+  assert.deepEqual(finals.map((p) => p.name), [
+    "Dragonite", "Tyranitar", "Salamence", "Metagross", "Garchomp", "Hydreigon", "Goodra", "Kommo-o", "Dragapult", "Baxcalibur",
+  ]);
+  const lines = new Set<number>();
+  for (const final of finals) {
+    for (let p: Pokemon | undefined = final; p; p = p.evolution.evolvesFrom ? pokedex.getById(p.evolution.evolvesFrom) : undefined) {
+      lines.add(p.id);
+    }
+  }
+  assert.deepEqual(pokedex.all.filter((p) => p.flags.isPseudoLegendary).map((p) => p.id), [...lines].sort((a, b) => a - b));
+  assert.ok(passes("flag:pseudo-legendary", "Dratini") && !passes("flag:pseudo-legendary", "Slaking") && !passes("flag:pseudo-legendary", "Mewtwo"));
+  assert.ok(!pokedex.all.some((p) => p.flags.isPseudoLegendary && (p.flags.isLegendary || p.flags.isMythical)));
+});
+check("Three-Stage Line follows the real evolution tree (branches, regional-only and baby stages)", () => {
+  // lineStages = stage + longest branch below, recomputed here from evolvesTo
+  const below = (p: Pokemon): number => Math.max(0, ...p.evolution.evolvesTo.map((id) => 1 + below(pokedex.getById(id)!)));
+  for (const p of pokedex.all) assert.equal(p.evolution.lineStages, p.evolution.stage + below(p), p.name);
+  const yes = ["Charmander", "Charmeleon", "Charizard", "Applin", "Dipplin", "Hydrapple", "Gloom", "Bellossom", "Pichu", "Zigzagoon", "Obstagoon", "Wurmple", "Cosmog"];
+  const no = ["Flapple", "Appletun", "Eevee", "Vaporeon", "Tauros", "Mewtwo", "Kubfu", "Scyther"];
+  for (const name of yes) assert.ok(passes("evo:three-stage", name), `${name} should be Three-Stage`);
+  for (const name of no) assert.ok(!passes("evo:three-stage", name), `${name} should not be Three-Stage`);
+});
+check("«Never evolves» is exactly the existing No Evolution clause (no duplicate condition)", () => {
+  const neverEvolves = (p: Pokemon) => p.evolution.evolvesFrom === null && p.evolution.evolvesTo.length === 0;
+  for (const p of pokedex.all) {
+    assert.equal(getCondition("evo:none").test(p), neverEvolves(p), p.name);
+    assert.equal(neverEvolves(p), p.evolution.lineStages === 1, p.name);
+  }
+  assert.ok(passes("evo:none", "Tauros") && !passes("evo:none", "Eevee") && !passes("evo:none", "Vaporeon"));
+  // no two catalogue conditions select exactly the same Pokémon
+  const seen = new Map<string, string>();
+  for (const c of getAllConditions()) {
+    const key = pokedex.all.filter(c.test).map((p) => p.id).join(",");
+    assert.ok(!seen.has(key), `${c.id} duplicates ${seen.get(key)}`);
+    seen.set(key, c.id);
+  }
+});
+check("answers with the new clauses: correct accepted, wrong rejected, no reuse", () => {
+  const grid = { rows: ["flag:pseudo-legendary", "gender:genderless", "evo:three-stage"], columns: ["stat:total>=600", "gen:1", "type:dragon"] };
+  const answer = (cellIndex: number, name: string, used: number[] = []) =>
+    validateAnswer({ definition: grid, cellIndex, pokemon: byName(name), usedPokemonIds: used });
+  assert.ok(answer(0, "Dragonite").ok && answer(1, "Dratini").ok && answer(4, "Magnemite").ok && answer(7, "Charizard").ok);
+  const reason = (r: ReturnType<typeof answer>) => !r.ok && r.reason;
+  assert.equal(reason(answer(0, "Dratini")), "incorrect", "Dratini is pseudo-legendary but has 300 BST");
+  assert.equal(reason(answer(3, "Slaking")), "incorrect", "Slaking has 670 BST but a gender");
+  assert.equal(reason(answer(4, "Chansey")), "incorrect", "Chansey is always female, not genderless");
+  assert.equal(reason(answer(7, "Tauros")), "incorrect");
+  assert.equal(reason(answer(6, "Dragonite", [149])), "already-used");
 });
 
 console.log("Generator & daily");
@@ -189,6 +288,18 @@ check("quality rules reject impossible / trivial / unfair grids", () => {
   assert.equal(isViableCell("gen:1", "type:fire", qualityData), true);
   assert.ok(isKnowledgeHeavyCondition("stat:speed>=100") && isKnowledgeHeavyCondition("size:tall"));
   assert.ok(!isKnowledgeHeavyCondition("type:fire"));
+  // impossible intersections are never viable, whatever conditions they come from
+  assert.equal(isViableCell("flag:pseudo-legendary", "type:grass", qualityData), false, "Pseudo-Legendary × Grass has no answer");
+  assert.equal(isViableCell("flag:baby", "stat:total>=600", qualityData), false, "Baby × BST 600+ has no answer");
+  assert.equal(isViableCell("gender:genderless", "flag:legendary", qualityData), true);
+  assert.equal(isViableCell("evo:three-stage", "gen:1", qualityData), true);
+  const pseudoGrass = { rows: ["flag:pseudo-legendary", "gen:1", "gen:3"], columns: ["type:grass", "type:water", "type:fire"] };
+  assert.equal(assessGrid(pseudoGrass, qualityData, undefined, "solvable").rejection, "cell-with-too-few-answers");
+  // same-axis redundancy (one condition ~implies the other), a rule of generator v2.1.0+
+  assert.ok(isRedundantPair("flag:legendary", "evo:none", qualityData) && isRedundantPair("flag:baby", "evo:first-stage", qualityData));
+  const redundant = { rows: ["flag:legendary", "evo:none", "type:fire"], columns: ["type:psychic", "gen:4", "gen:7"] };
+  assert.equal(assessGrid(redundant, qualityData, undefined, "fair").rejection, "redundant-conditions-on-an-axis");
+  assert.notEqual(assessGrid(redundant, qualityData, undefined, "fair", "2.0.0").rejection, "redundant-conditions-on-an-axis");
   // the original weak Grid #001 is now rejected
   const oldGrid001 = { rows: ["type:fighting", "flag:legendary", "type:flying"], columns: ["type:poison", "typing:dual", "type:electric"] };
   assert.notEqual(assessGrid(oldGrid001, qualityData).rejection, null);
@@ -201,21 +312,32 @@ check("365 sequential daily grids pass every rule with no fallbacks or 3-day rep
   };
   const keys = new Set<string>();
   let repeatsWithin3 = 0, maxAttempts = 0;
+  const usedConditions = new Set<string>();
   for (let n = 1; n <= 365; n++) {
     const recentDays = recentDaysBefore(n, lookup);
     const result = generateDailyGrid(n, { pokemon: pokedex.all, recentDays, qualityData });
     assert.equal(result.fallbackStep, 0, `grid #${n} needed a fallback`);
     assert.equal(assessGrid(result.definition, qualityData).rejection, null, `grid #${n}`);
+    // all 9 intersections re-checked with the engine that validates players' answers
+    const cells = evaluateGrid(result.definition, pokedex.all).cells.map((c) => c.answers);
+    assert.ok(cells.every((answers) => answers.length >= 1), `grid #${n} has an empty cell`);
+    assert.ok(hasDistinctSolution(cells), `grid #${n} cannot be filled with 9 different Pokémon`);
+    assert.deepEqual(cells.map((a) => a.length), result.report.evaluation.cells.map((c) => c.answers.length), `grid #${n} counts`);
     const ids = gridConditionIds(result.definition);
     const last3 = new Set(recentDays.slice(0, 3).flat());
     repeatsWithin3 += ids.filter((id) => last3.has(id)).length;
     maxAttempts = Math.max(maxAttempts, result.attempts);
     history.set(n, ids);
+    ids.forEach((id) => usedConditions.add(id));
     keys.add(gridKey(result.definition));
   }
   console.log(`    (max candidates for one grid: ${maxAttempts}, ${keys.size}/365 distinct)`);
   assert.equal(repeatsWithin3, 0, "conditions from the previous 3 days must not repeat");
   assert.equal(keys.size, 365);
+  // Known, pre-existing: the familiar-answers rule (≥2 Gen I–VII answers per cell) keeps Gen VIII/IX and
+  // Paradox (all Gen IX) out, and Ultra Beasts have too few viable partners. Everything else appears.
+  const unused = getAllConditions().filter((c) => !usedConditions.has(c.id)).map((c) => c.id);
+  assert.deepEqual(unused, ["gen:8", "gen:9", "flag:paradox", "flag:ultra-beast"], "conditions never drawn in a year");
 });
 check("fallback ladder never throws and always returns a solvable grid", () => {
   assert.equal(assessGrid(SAFE_GRID, qualityData, undefined, "solvable").rejection, null, "SAFE_GRID must be solvable");
@@ -224,6 +346,11 @@ check("fallback ladder never throws and always returns a solvable grid", () => {
   const result = generateGridSafe({ seed: "hopeless", pokemon: pokedex.all, conditions: hopeless, maxAttempts: 50 });
   assert.equal(result.fallbackStep, 4);
   assert.deepEqual(result.definition, SAFE_GRID);
+  // one generation run is bounded and fails with a typed error instead of looping
+  assert.throws(
+    () => generateGrid({ seed: "hopeless", pokemon: pokedex.all, conditions: hopeless, maxAttempts: 25 }),
+    (e: unknown) => e instanceof GridGenerationError && e.stats.attempts === 25,
+  );
 });
 check("resolveDailyGrid: frozen wins, broken frozen data falls back, never throws", () => {
   const frozen = { rows: ["gen:1", "gen:2", "gen:3"], columns: ["type:fire", "type:water", "type:electric"] };
@@ -239,6 +366,7 @@ check("resolveDailyGrid: frozen wins, broken frozen data falls back, never throw
 });
 check(`frozen grids in data/daily-challenges.json are complete and still valid (generator v${GENERATOR_VERSION})`, () => {
   const frozen = Object.values(loadChallengeFile().grid ?? {}) as StoredChallenge<FrozenGrid>[];
+  const frozenStore = createJsonChallengeStore(loadChallengeFile());
   assert.ok(frozen.length >= 60, `expected ≥60 frozen grids, found ${frozen.length}`);
   const numbers = frozen.map((f) => f.number).sort((a, b) => a - b);
   numbers.forEach((n, i) => assert.equal(n, i + 1, "frozen grids must be consecutive from #1"));
@@ -247,6 +375,10 @@ check(`frozen grids in data/daily-challenges.json are complete and still valid (
     assert.equal(payload.seed, dailyGridSeed(number, payload.generatorVersion), `#${number} seed`);
     assert.ok(payload.generatorVersion && payload.dataset?.hash && payload.answerCounts.length === 9, `#${number} metadata`);
     assert.deepEqual(validateFrozenGrid(payload, qualityData), [], `#${number}`);
+    // served exactly as frozen: catalogue changes never regenerate a frozen day
+    const served = resolveDailyGrid(number, { pokemon: pokedex.all, store: frozenStore });
+    assert.equal(served.source, "frozen", `#${number}`);
+    assert.deepEqual(served.definition, { rows: payload.rows, columns: payload.columns }, `#${number}`);
   }
   // Reproducibility: same seed + same frozen history ⇒ exactly the frozen grid.
   const byNumber = new Map(frozen.map((f) => [f.number, f.payload]));
@@ -537,39 +669,73 @@ console.log("PokéBingo");
 const bData = qData; // same prepared catalogue data as Cuartetos
 const bKey = deriveBingoKey(parseGuessKey(generateGuessKey())!);
 const bChallenges = new Map<number, BingoChallenge>();
-/** Perfect play: matching on the first 19 cards → place matched cards, skip the rest. */
-function perfectMoves(ch: BingoChallenge): BingoMove[] {
-  const window = ch.deck.slice(0, PERFECT_WINDOW);
-  const owner = new Map<number, number>(); // card index → cell
-  const fits = (cardIdx: number, cell: number) => fitsCell(ch.cells[cell], qLookup(window[cardIdx]));
-  const tryCell = (cell: number, seen: Set<number>): boolean => {
-    for (let c = 0; c < window.length; c++) {
-      if (!fits(c, cell) || seen.has(c)) continue;
-      seen.add(c);
-      const prev = owner.get(c);
-      if (prev === undefined || tryCell(prev, seen)) {
-        owner.set(c, cell);
-        return true;
+const ids = (placed: ReadonlyArray<{ id: number } | null>) => placed.map((p) => p?.id ?? null);
+
+/**
+ * Plays a whole game the way the client does (each request = compacted history
+ * + 1 move) with a random, NOT optimal, player: random fitting cells, wrong
+ * tries and bursts of discards. Asserts the rules on every single turn.
+ */
+function simulateBingo(ch: BingoChallenge, seed: string, opts: { skipRate?: number; wrongRate?: number; burst?: number } = {}) {
+  const rng = createRng(seed);
+  const { skipRate = 0.3, wrongRate = 0.15, burst = 1 } = opts;
+  let r = playBingo(ch, [], bData);
+  assert.ok(r.ok, "initial state");
+  let requests = 0, wrongTries = 0, maxHistory = 0;
+  while (r.ok && r.state.status === "playing") {
+    const s = r.state;
+    const card = qLookup(s.current!.id)!;
+    const free = s.placed.flatMap((p, i) => (p ? [] : [i]));
+    // The dealing rule, checked against the REAL board with the categories' own test.
+    const fitting = free.filter((i) => fitsCell(ch.cells[i], card));
+    assert.ok(fitting.length > 0, `${card.name} was dealt but fits no free cell`);
+    assert.ok(!s.placed.some((p) => p?.id === card.id), `${card.name} is already on the board`);
+    const wrong = free.filter((i) => !fitsCell(ch.cells[i], card));
+    const roll = rng();
+    const moves: BingoMove[] =
+      roll < skipRate
+        ? Array.from({ length: 1 + Math.floor(rng() * burst) }, () => ({ type: "skip" }) as const)
+        : roll < skipRate + wrongRate && wrong.length
+          ? [{ type: "place", cell: pickOne(rng, wrong) }]
+          : [{ type: "place", cell: pickOne(rng, fitting) }];
+    for (const move of moves) {
+      const before: BingoPublicState = r.ok ? r.state : s;
+      const next = playBingo(ch, [...(r.ok ? r.moves : []), move], bData);
+      assert.ok(next.ok, `request rejected: ${!next.ok && next.message}`);
+      requests++;
+      if (move.type === "skip") {
+        assert.deepEqual(ids(next.state.placed), ids(before.placed), "a discard changed the board");
+        assert.equal(next.state.discards, before.discards + 1);
+        assert.equal(next.state.cardNumber, before.cardNumber + 1);
+      } else if (!fitsCell(ch.cells[move.cell], qLookup(before.current!.id))) {
+        wrongTries++;
+        assert.deepEqual(ids(next.state.placed), ids(before.placed), "a wrong try occupied a cell");
+        assert.ok(next.state.current?.id === before.current!.id && next.state.wrongCells.includes(move.cell), "same Pokémon stays, cell shows ERROR");
+        assert.equal(next.state.discards, before.discards, "no penalty");
+      } else {
+        assert.equal(next.state.placed[move.cell]?.id, before.current!.id);
       }
+      // The compacted history replays to exactly the same state.
+      const replayed = playBingo(ch, next.moves, bData);
+      assert.ok(replayed.ok && JSON.stringify(replayed.state) === JSON.stringify(next.state), "compacted history diverges");
+      maxHistory = Math.max(maxHistory, next.moves.length);
+      assert.ok(next.moves.length < MAX_HISTORY, `history too long: ${next.moves.length}`);
+      r = next;
     }
-    return false;
-  };
-  for (let cell = 0; cell < CELL_COUNT; cell++) assert.ok(tryCell(cell, new Set()), "matching must exist");
-  const moves: BingoMove[] = [];
-  for (let c = 0; c < window.length && moves.filter((m) => m.type === "place").length < CELL_COUNT; c++) {
-    const cell = owner.get(c);
-    moves.push(cell === undefined ? { type: "skip" } : { type: "place", cell });
+    assert.ok(requests < 5000, "the game never ends");
   }
-  return moves;
+  assert.ok(r.ok && r.state.status === "won" && r.state.placed.every(Boolean), "board completed");
+  assert.equal(new Set(r.state.placed.map((p) => p!.id)).size, CELL_COUNT, "no Pokémon twice on the board");
+  return { requests, discards: r.state.discards, wrongTries, maxHistory, presented: r.state.cardNumber };
 }
+
 check("SAFE_BINGO fallback is valid and winnable", () => {
   assert.deepEqual(analyzeBingo(SAFE_BINGO, bData).problems, []);
-  const r = playBingo(SAFE_BINGO, perfectMoves(SAFE_BINGO), qLookup);
-  assert.ok(r.ok && r.state.status === "won");
+  simulateBingo(SAFE_BINGO, "safe", { skipRate: 0, wrongRate: 0 });
 });
-check("120 sequential daily PokéBingos: 16 valid cells, 24 distinct base-species cards, solvable, winnable perfect game", () => {
-  let fallbacks = 0;
-  for (let n = 1; n <= 120; n++) {
+check("365 sequential daily PokéBingos: valid, no dead cards, never blocked, completed by random players", () => {
+  let fallbacks = 0, games = 0, discards = 0, wrongTries = 0, presented = 0, maxHistory = 0;
+  for (let n = 1; n <= 365; n++) {
     const r = generateDailyBingo(n, { data: bData, key: bKey, lookup: (d) => bChallenges.get(d) ?? null });
     const ch = r.challenge;
     bChallenges.set(n, ch);
@@ -581,14 +747,20 @@ check("120 sequential daily PokéBingos: 16 valid cells, 24 distinct base-specie
     assert.ok(ch.deck.every((id) => qLookup(id)!.id === qLookup(id)!.dexNumber), "base species only");
     const a = analyzeBingo(ch, bData);
     assert.deepEqual(a.problems, [], `#${n}: ${a.problems.join("; ")}`);
+    assert.equal(a.deadCards, 0, `#${n} has a card that fits no cell`);
+    assert.ok(isAlwaysCompletable(ch.cells, bData), `#${n} can reach an impossible state`);
     assert.ok(a.recognizable >= 16, `#${n} recognisable ${a.recognizable}`);
-    // Real solvability: a perfect game (≤3 skips, 0 mistakes) wins.
-    const moves = perfectMoves(ch);
-    assert.ok(moves.filter((m) => m.type === "skip").length <= MAX_SKIPS);
-    const played = playBingo(ch, moves, qLookup);
-    assert.ok(played.ok && played.state.status === "won", `#${n} not winnable`);
+    for (const [i, opts] of [{ skipRate: 0.3, wrongRate: 0.15 }, { skipRate: 0.6, wrongRate: 0.1, burst: 6 }].entries()) {
+      const g = simulateBingo(ch, `day-${n}-${i}`, opts);
+      games++;
+      discards += g.discards;
+      wrongTries += g.wrongTries;
+      presented += g.presented;
+      maxHistory = Math.max(maxHistory, g.maxHistory);
+    }
   }
   assert.equal(fallbacks, 0, `fallbacks: ${fallbacks}`);
+  console.log(`    ${games} games completed · ${discards} discards · ${wrongTries} wrong tries · ${presented} Pokémon dealt · longest history ${maxHistory} moves`);
 });
 check("PokéBingo is deterministic, varies by day, and avoids short-term repeats", () => {
   const a = generateDailyBingo(5, { data: bData, key: bKey, lookup: (d) => bChallenges.get(d) ?? null }).challenge;
@@ -605,76 +777,112 @@ check("PokéBingo is deterministic, varies by day, and avoids short-term repeats
       if (prev) assert.ok(!ch.deck.some((id) => prev.deck.includes(id)), `#${n} deals a Pokémon from ${d} day(s) before`);
     }
   }
+  // Same moves → same Pokémon for every player, including far beyond the opening deck.
+  const ch = bChallenges.get(1)!;
+  const far: BingoMove[] = [{ type: "skip", count: 500 }];
+  const x = playBingo(ch, far, bData), y = playBingo(ch, far, bData);
+  assert.ok(x.ok && y.ok && x.state.current!.id === y.state.current!.id);
 });
-check("rules: no lives — a wrong cell is just an ERROR and the same Pokémon can be tried elsewhere", () => {
+check("dealing: never a Pokémon that only fits occupied cells (e.g. Drednaw after «Agua» is filled)", () => {
+  // Board where a card fits exactly ONE cell: fill that cell with another card first.
+  // Boards depend on this run's random key: search the days/cells for one with 2+ cards that fit only that cell.
+  const onlyFits = (ch: BingoChallenge, cell: number) =>
+    [...bData.members.get(ch.cells[cell])!].filter((id) => ch.cells.filter((c) => bData.members.get(c)!.has(id)).length === 1);
+  const found = [...bChallenges.values()]
+    .flatMap((ch) => ch.cells.map((_, cell) => ({ ch, target: cell, only: onlyFits(ch, cell) })))
+    .find((t) => t.only.length >= 2);
+  assert.ok(found, "test needs cards that fit only the target cell");
+  const { ch, target, only } = found;
+  // Discard until a Pokémon fitting the target cell is in play, place it there.
+  let r = playBingo(ch, [], bData);
+  for (let k = 0; r.ok && !fitsCell(ch.cells[target], qLookup(r.state.current!.id)); k++) {
+    r = playBingo(ch, [...r.moves, { type: "skip" }], bData);
+    assert.ok(k < 5000);
+  }
+  assert.ok(r.ok);
+  r = playBingo(ch, [...r.moves, { type: "place", cell: target }], bData);
+  assert.ok(r.ok && r.state.placed[target]);
+  // From now on, Pokémon that fit only the (occupied) target cell must never be dealt — check a long discard run.
+  for (let k = 0; k < 400; k++) {
+    assert.ok(r.ok && !only.includes(r.state.current!.id), `dealt ${qLookup(r.ok ? r.state.current!.id : 0)?.name}, which only fits an occupied cell`);
+    r = playBingo(ch, [...r.moves, { type: "skip" }], bData);
+  }
+});
+check("rules: unlimited free discards, no lives, ERROR keeps the Pokémon in play", () => {
   const ch = bChallenges.get(1)!;
   const first = qLookup(ch.deck[0]);
   const good = ch.cells.findIndex((c) => fitsCell(c, first));
   const bads = ch.cells.map((c, i) => (fitsCell(c, first) ? -1 : i)).filter((i) => i >= 0);
   assert.ok(good >= 0 && bads.length >= 3, "test needs a card with 3+ wrong cells and a right one");
-  // Three wrong tries with the same Pokémon: ERROR each time, no penalty, the card stays in play.
-  const tries: BingoMove[] = [];
+  // Wrong tries: ERROR each time, no penalty, the card stays in play.
+  let moves: BingoMove[] = [];
   for (const [k, cell] of bads.slice(0, 3).entries()) {
-    tries.push({ type: "place", cell });
-    const r = playBingo(ch, tries, qLookup);
+    const r = playBingo(ch, [...moves, { type: "place", cell }], bData);
     assert.ok(r.ok && r.last?.kind === "wrong" && r.last.cell === cell && r.state.placed[cell] === null);
     assert.ok(r.ok && r.state.status === "playing" && r.state.cardNumber === 1 && r.state.current?.id === first!.id, "same Pokémon still in play");
     assert.deepEqual(r.ok && r.state.wrongCells, bads.slice(0, k + 1), "each tried cell shows ERROR");
-    assert.ok(r.ok && !("lives" in r.state), "no lives in the state");
+    assert.ok(r.ok && !("lives" in r.state) && !("skips" in r.state), "no lives nor skip counter in the state");
+    moves = r.ok ? r.moves : moves;
   }
-  assert.ok(playBingo(ch, [...tries, { type: "place", cell: bads[0] }], qLookup).ok, "trying a cell again is harmless");
-  // Then the right cell: placed normally, next card, ERROR marks cleared.
-  const placed = playBingo(ch, [...tries, { type: "place", cell: good }], qLookup);
+  assert.ok(playBingo(ch, [...moves, { type: "place", cell: bads[0] }], bData).ok, "trying a cell again is harmless");
+  const placed = playBingo(ch, [...moves, { type: "place", cell: good }], bData);
   assert.ok(placed.ok && placed.last?.kind === "correct" && placed.state.placed[good]?.id === first!.id);
   assert.ok(placed.ok && placed.state.cardNumber === 2 && placed.state.wrongCells.length === 0);
-  // Every wrong cell of the board, twice: never game over.
-  const spam: BingoMove[] = [...bads, ...bads].map((cell) => ({ type: "place", cell }));
-  const spammed = playBingo(ch, spam, qLookup);
-  assert.ok(spammed.ok && spammed.state.status === "playing" && spammed.state.cardNumber === 1);
-  // Skips unchanged.
-  const skip = playBingo(ch, [{ type: "skip" }], qLookup);
-  assert.ok(skip.ok && skip.state.skips === MAX_SKIPS - 1 && skip.state.cardNumber === 2);
-  const fourSkips: BingoMove[] = Array(MAX_SKIPS + 1).fill({ type: "skip" });
-  assert.equal(playBingo(ch, fourSkips, qLookup).ok, false, "no 4th skip");
-  assert.equal(playBingo(ch, [{ type: "place", cell: good }, { type: "place", cell: good }], qLookup).ok, false, "occupied cell");
-  assert.equal(playBingo(ch, [{ type: "place", cell: 99 }], qLookup).ok, false, "invalid cell");
-  assert.equal(playBingo(ch, Array(ch.deck.length * (CELL_COUNT + 1) + 1).fill({ type: "skip" }), qLookup).ok, false, "bounded request");
-  // Victory
-  const won = playBingo(ch, perfectMoves(ch), qLookup);
-  assert.ok(won.ok && won.state.status === "won" && won.state.endReason === "complete" && won.state.placed.every(Boolean));
-  assert.ok(won.ok && new Set(won.state.placed.map((p) => p!.id)).size === 16, "no Pokémon reused on the board");
-  assert.equal(playBingo(ch, [...perfectMoves(ch), { type: "skip" }], qLookup).ok, false, "no moves after the game");
-  // No skips left + a Pokémon that fits no free cell: discarded for free (never stuck); deck exhaustion still ends the game.
-  const nofit = qData.pool.find((p) => ch.cells.every((c) => !fitsCell(c, p)))!;
-  const tiny: BingoChallenge = { cells: ch.cells, deck: [...ch.deck.slice(0, 3), nofit.id] };
-  const stuck = playBingo(tiny, [{ type: "skip" }, { type: "skip" }, { type: "skip" }], qLookup);
-  assert.ok(stuck.ok && stuck.autoDiscarded.map((p) => p.id).join() === String(nofit.id), "auto-discarded");
-  assert.ok(stuck.ok && stuck.state.status === "lost" && stuck.state.endReason === "deck-exhausted" && stuck.state.current === null);
-  const longer: BingoChallenge = { cells: ch.cells, deck: [...ch.deck.slice(0, 3), nofit.id, ch.deck[0]] };
-  const resumed = playBingo(longer, [{ type: "skip" }, { type: "skip" }, { type: "skip" }], qLookup);
-  assert.ok(resumed.ok && resumed.state.status === "playing" && resumed.state.current?.id === ch.deck[0], "play continues with the next card");
-  assert.equal(MAX_SKIPS, 3);
+  assert.deepEqual(placed.ok && placed.moves, [{ type: "place", cell: good }], "failed tries are dropped once the card is placed");
+  // Far more than 3 discards in a row, one request each (like the button), board untouched.
+  let r: BingoResponse = placed;
+  for (let k = 1; k <= 60; k++) {
+    r = playBingo(ch, [...(r.ok ? r.moves : []), { type: "skip" }], bData);
+    assert.ok(r.ok && r.state.status === "playing" && r.state.discards === k && r.state.placed[good]?.id === first!.id, `discard ${k}`);
+  }
+  assert.deepEqual(r.ok && r.moves, [{ type: "place", cell: good }, { type: "skip", count: 60 }], "a discard run is one move");
+  assert.equal(r.ok && r.state.cardNumber, 62);
+  // A huge run is just as cheap and still deals a valid card.
+  const t0 = Date.now();
+  const huge = playBingo(ch, [{ type: "place", cell: good }, { type: "skip", count: 1_000_000_000 }], bData);
+  assert.ok(huge.ok && huge.state.discards === 1_000_000_000 && huge.state.status === "playing" && Date.now() - t0 < 500);
+  const hugeCard = qLookup(huge.ok ? huge.state.current!.id : 0)!;
+  assert.ok(huge.ok && huge.state.placed.some((p, i) => !p && fitsCell(ch.cells[i], hugeCard)));
+  // Validation.
+  for (const count of [0, -1, 1.5, "3", Number.MAX_SAFE_INTEGER + 2]) {
+    assert.equal(playBingo(ch, [{ type: "skip", count }], bData).ok, false, `invalid count ${count}`);
+  }
+  assert.equal(playBingo(ch, [{ type: "place", cell: good }, { type: "place", cell: good }], bData).ok, false, "occupied cell");
+  assert.equal(playBingo(ch, [{ type: "place", cell: 99 }], bData).ok, false, "invalid cell");
+  assert.equal(playBingo(ch, Array(MAX_HISTORY + 1).fill({ type: "place", cell: bads[0] }), bData).ok, false, "bounded request");
+  // Victory, then nothing else is accepted.
+  const won = simulateBingo(ch, "rules", { skipRate: 0, wrongRate: 0 });
+  assert.ok(won.presented >= CELL_COUNT);
+  let w = playBingo(ch, [], bData);
+  while (w.ok && w.state.status === "playing") {
+    const card = qLookup(w.state.current!.id);
+    const cell = w.state.placed.findIndex((p, i) => !p && fitsCell(ch.cells[i], card));
+    w = playBingo(ch, [...w.moves, { type: "place", cell }], bData);
+  }
+  assert.ok(w.ok && w.state.status === "won" && w.state.endReason === "complete" && w.state.current === null);
+  assert.equal(playBingo(ch, [...(w.ok ? w.moves : []), { type: "skip" }], bData).ok, false, "no moves after the game");
 });
 check("only the current card is ever sent to the client", () => {
   const ch = bChallenges.get(1)!;
-  const r = playBingo(ch, [], qLookup);
+  const r = playBingo(ch, [], bData);
   assert.ok(r.ok);
   const json = JSON.stringify(r);
-  const future = ch.deck.slice(1).filter((id) => id !== ch.deck[0]);
-  for (const id of future) assert.ok(!json.includes(`"name":"${qLookup(id)!.name}"`), "future card leaked");
+  for (const id of ch.deck.slice(1)) assert.ok(!json.includes(`"name":"${qLookup(id)!.name}"`), "future card leaked");
   assert.ok(r.ok && r.state.current?.id === ch.deck[0]);
-  assert.ok(!/"deck":|"cells":/.test(json), "raw challenge leaked");
+  assert.ok(!/"deck":|"cells":|"cycle"/.test(json), "raw challenge leaked");
 });
-check("local persistence: per-day keys, progress restored only for the same puzzle", () => {
+check("local persistence: per-day keys, progress restored only for the same puzzle and rules", () => {
   assert.notEqual(bingoStorageKey(1), bingoStorageKey(2));
   const ch = bChallenges.get(1)!;
-  const init = playBingo(ch, [], qLookup);
-  const after = playBingo(ch, [{ type: "skip" }], qLookup);
+  const init = playBingo(ch, [], bData);
+  const after = playBingo(ch, [{ type: "skip" }], bData);
   assert.ok(init.ok && after.ok);
-  const saved = { key: "abc", moves: [{ type: "skip" as const }], state: after.state };
+  const saved = { key: "abc", moves: after.moves, state: after.state };
   assert.deepEqual(restoreBingo(saved, "abc", init.state), { moves: saved.moves, state: after.state });
-  const legacy = { key: "abc", moves: saved.moves, state: { ...after.state, wrongCells: undefined, lives: 2 } };
-  assert.deepEqual(restoreBingo(legacy as never, "abc", init.state), { moves: [], state: init.state }, "progress saved under the old lives rules is ignored");
+  const lives = { key: "abc", moves: saved.moves, state: { ...after.state, wrongCells: undefined, discards: undefined, lives: 2 } };
+  assert.deepEqual(restoreBingo(lives as never, "abc", init.state), { moves: [], state: init.state }, "progress saved under the old lives rules is ignored");
+  const skips = { key: "abc", moves: saved.moves, state: { ...after.state, discards: undefined, skips: 2, deckSize: 24 } };
+  assert.deepEqual(restoreBingo(skips as never, "abc", init.state), { moves: [], state: init.state }, "progress saved under the 3-skips rules is ignored");
   assert.deepEqual(restoreBingo(saved, "other-day-key", init.state), { moves: [], state: init.state });
   assert.deepEqual(restoreBingo(undefined, "abc", init.state), { moves: [], state: init.state });
   const stats = computeBingoStats({ "1": { won: true, filled: 16 }, "2": { won: false, filled: 10 }, "3": { won: true, filled: 16 } }, 3);
@@ -683,7 +891,7 @@ check("local persistence: per-day keys, progress restored only for the same puzz
 check("PokéBingo share text reveals no Pokémon or conditions", () => {
   const ch = bChallenges.get(1)!;
   const text = buildBingoShareText({ challengeNumber: 1, filled: Array(16).fill(true), won: true });
-  assert.ok(text.startsWith("🎯 PokeBingo #001") && text.includes("16/16 · ¡BINGO!") && !/❤|vida/.test(text), "no lives in the share text");
+  assert.ok(text.startsWith("🎯 PokeBingo #001") && text.includes("16/16 · ¡BINGO!") && !/❤|vida|salto/i.test(text), "no lives nor skips in the share text");
   for (const id of ch.deck) assert.ok(!text.includes(qLookup(id)!.name));
   for (const c of ch.cells) assert.ok(!text.includes(getQuartetCategory(c)!.label));
 });
@@ -699,8 +907,22 @@ check("PokéBingo challenges are sealed, bound to their day, and unavailable wit
   const noKey = resolveDailyBingo(1, { data: bData, store: createJsonChallengeStore(loadChallengeFile()), key: null });
   assert.ok(noKey.source === "unavailable" && noKey.challenge === null);
 });
+check("frozen-board repair replaces only the cards that fit no cell", () => {
+  const ch = bChallenges.get(2)!;
+  const nofit = qData.pool.filter((p) => ch.cells.every((c) => !fitsCell(c, p))).slice(0, 2).map((p) => p.id);
+  // Like the old generator: the dead cards are EXTRA cards (the rest of the deck still covers the board).
+  const covers = (deck: number[]) => hasDistinctSolution(ch.cells.map((c) => deck.filter((id) => fitsCell(c, qLookup(id)))));
+  const [i, j] = ch.deck.flatMap((_, a) => ch.deck.map((_, b) => [a, b])).find(([a, b]) => a < b && covers(ch.deck.filter((_, k) => k !== a && k !== b)))!;
+  const broken: BingoChallenge = { cells: ch.cells, deck: ch.deck.map((id, k) => (k === i ? nofit[0] : k === j ? nofit[1] : id)) };
+  assert.ok(analyzeBingo(broken, bData).problems.includes("card fits no cell"));
+  const fixed = repairDeadCards(broken, bData, "seed");
+  assert.deepEqual(analyzeBingo(fixed, bData).problems, []);
+  assert.deepEqual(fixed.cells, broken.cells);
+  fixed.deck.forEach((id, k) => (k === i || k === j ? assert.notEqual(id, broken.deck[k]) : assert.equal(id, broken.deck[k])));
+  assert.deepEqual(repairDeadCards(broken, bData, "seed"), fixed, "deterministic");
+});
 if (guessKey) {
-  check("frozen PokéBingos decrypt and are valid and winnable", () => {
+  check("the 60 frozen PokéBingos decrypt, follow the new rules and are completed by random players", () => {
     const key = deriveBingoKey(guessKey);
     const file = loadChallengeFile();
     const frozen = Object.values(file.bingo ?? {}) as StoredChallenge<FrozenBingo>[];
@@ -711,8 +933,10 @@ if (guessKey) {
       assert.equal(r.source, "frozen", `#${number}`);
       assert.equal(date, dateForChallengeNumber(number));
       assert.equal(r.progressKey, payload.salt);
-      const played = playBingo(r.challenge!, perfectMoves(r.challenge!), qLookup);
-      assert.ok(played.ok && played.state.status === "won", `#${number} not winnable`);
+      const a = analyzeBingo(r.challenge!, bData);
+      assert.deepEqual(a.problems, [], `#${number}: ${a.problems.join("; ")}`);
+      assert.equal(a.deadCards, 0, `#${number}`);
+      for (let g = 0; g < 3; g++) simulateBingo(r.challenge!, `frozen-${number}-${g}`, { skipRate: 0.2 * g, wrongRate: 0.15, burst: 1 + 4 * g });
     }
   });
 }
@@ -795,23 +1019,48 @@ check("type clues: one per position, both types for dual types, and no names/val
   }
   assert.ok(!/"value"|"ranking"/.test(json), "the initial state leaked values or the ranking");
 });
-check("play: in/out of the Top 10, positions, duplicates, lives, victory, defeat", () => {
+check("play: in/out of the Top 10, positions, duplicates, no lives, victory", () => {
   const c = tChallenges.get(1)!;
   const inside = c.ranking[3].id;
-  const outsiders = qData.pool.filter((p) => !c.ranking.some((e) => e.id === p.id)).slice(0, 4).map((p) => p.id);
+  const outsiders = qData.pool.filter((p) => !c.ranking.some((e) => e.id === p.id)).map((p) => p.id);
   const hit = playTop10(c, [inside], qLookup);
-  assert.ok(hit.ok && hit.result === "correct" && hit.position === 4 && hit.state.lives === 3 && hit.state.found[0].position === 4);
+  assert.ok(hit.ok && hit.result === "correct" && hit.position === 4 && hit.state.found[0].position === 4);
   assert.ok(hit.ok && hit.state.ranking === undefined, "ranking hidden while playing");
+  assert.ok(hit.ok && !("lives" in hit.state), "no lives in the state");
   const miss = playTop10(c, [outsiders[0]], qLookup);
-  assert.ok(miss.ok && miss.result === "wrong" && miss.position === undefined && miss.state.lives === 2 && miss.state.found.length === 0);
+  assert.ok(miss.ok && miss.result === "wrong" && miss.position === undefined && miss.state.found.length === 0 && miss.state.status === "playing");
   assert.equal(playTop10(c, [inside, inside], qLookup).ok, false, "duplicates rejected (and cost nothing)");
-  const lost = playTop10(c, outsiders.slice(0, 3), qLookup);
-  assert.ok(lost.ok && lost.state.status === "lost" && lost.state.ranking?.length === TOP_SIZE, "3 misses → lost, ranking revealed");
-  assert.equal(playTop10(c, outsiders, qLookup).ok, false, "no guesses after losing");
-  const won = playTop10(c, [outsiders[0], ...c.ranking.map((e) => e.id)], qLookup);
-  assert.ok(won.ok && won.state.status === "won" && won.state.lives === 2 && won.state.found.length === TOP_SIZE);
+  // 200 misses: still playing, nothing revealed, and the ranking can still be completed afterwards.
+  const many = playTop10(c, outsiders.slice(0, 200), qLookup);
+  assert.ok(many.ok && many.state.status === "playing" && many.state.ranking === undefined, "many misses never end the game");
+  const won = playTop10(c, [...outsiders.slice(0, 200), ...c.ranking.map((e) => e.id)], qLookup);
+  assert.ok(won.ok && won.state.status === "won" && won.state.found.length === TOP_SIZE && won.state.ranking?.length === TOP_SIZE);
   assert.equal(playTop10(c, [...c.ranking.map((e) => e.id), outsiders[0]], qLookup).ok, false, "no guesses after winning");
   assert.equal(playTop10(c, [99999], qLookup).ok, false, "unknown Pokémon");
+  assert.equal(playTop10(c, [], qLookup).ok, false, "an empty guess list is not a guess");
+});
+check("Give Up: reveals the ranking only when used, ends the game, cannot follow a completed game", () => {
+  const c = tChallenges.get(1)!;
+  const outsiders = qData.pool.filter((p) => !c.ranking.some((e) => e.id === p.id)).map((p) => p.id);
+  const guesses = [c.ranking[0].id, outsiders[0], c.ranking[5].id];
+  // Not giving up (the dialog was cancelled → no request): nothing revealed.
+  const playing = playTop10(c, guesses, qLookup);
+  assert.ok(playing.ok && playing.state.status === "playing" && playing.state.ranking === undefined);
+  // Giving up after 3 guesses: every pending position is revealed with its value.
+  const gaveUp = playTop10(c, guesses, qLookup, guesses.length);
+  assert.ok(gaveUp.ok && gaveUp.result === "gave-up" && gaveUp.state.status === "gave-up");
+  assert.ok(gaveUp.ok && gaveUp.state.found.map((e) => e.position).join() === "1,6", "found entries kept");
+  assert.ok(gaveUp.ok && gaveUp.state.ranking?.every((e, i) => e.position === i + 1 && e.pokemon.id === c.ranking[i].id && e.value), "full ranking with values");
+  // Giving up straight away is allowed.
+  const instant = playTop10(c, [], qLookup, 0);
+  assert.ok(instant.ok && instant.state.status === "gave-up" && instant.state.ranking?.length === TOP_SIZE);
+  // After giving up, no further guess is accepted (right or wrong).
+  assert.equal(playTop10(c, [...guesses, c.ranking[2].id], qLookup, guesses.length).ok, false, "no guesses after giving up");
+  assert.equal(playTop10(c, [...guesses, outsiders[1]], qLookup, guesses.length).ok, false);
+  // A completed game cannot be given up; malformed give-up markers are rejected.
+  const all = c.ranking.map((e) => e.id);
+  assert.equal(playTop10(c, all, qLookup, all.length).ok, false, "completed game cannot be abandoned");
+  for (const bad of [-1, 4, 1.5, "1"]) assert.equal(playTop10(c, guesses, qLookup, bad).ok, false, `gaveUpAt ${bad}`);
 });
 check("only the found entries reach the client while playing", () => {
   const c = tChallenges.get(1)!;
@@ -822,23 +1071,34 @@ check("only the found entries reach the client while playing", () => {
   const view = JSON.stringify(criterionView(c));
   for (const e of c.ranking) assert.ok(!view.includes(qLookup(e.id)!.name), "criterion view leaked the ranking");
 });
-check("Top 10 persistence, day change and stats", () => {
+check("Top 10 persistence (incl. Give Up), day change and stats", () => {
   assert.notEqual(top10StorageKey(1), top10StorageKey(2));
-  const init = initialTop10State(tChallenges.get(1)!, qLookup);
-  const state = { ...init, lives: 2 };
-  const saved = { key: "k1", guesses: [25], outcomes: ["wrong" as const], state };
-  assert.deepEqual(restoreTop10(saved, "k1", init), { guesses: [25], outcomes: ["wrong"], state });
-  assert.deepEqual(restoreTop10(saved, "k2", init), { guesses: [], outcomes: [], state: init });
+  const c = tChallenges.get(1)!;
+  const init = initialTop10State(c, qLookup);
+  const saved = { key: "k1", guesses: [25], outcomes: ["wrong" as const], state: init };
+  assert.deepEqual(restoreTop10(saved, "k1", init), { guesses: [25], outcomes: ["wrong"], gaveUpAt: undefined, state: init });
+  assert.deepEqual(restoreTop10(saved, "k2", init), { guesses: [], outcomes: [], gaveUpAt: undefined, state: init });
+  // Give Up persists across reloads.
+  const gaveUp = playTop10(c, [25], qLookup, 1);
+  assert.ok(gaveUp.ok);
+  const abandoned = { key: "k1", guesses: [25], outcomes: ["wrong" as const], gaveUpAt: 1, state: gaveUp.state };
+  const restored = restoreTop10(JSON.parse(JSON.stringify(abandoned)), "k1", init);
+  assert.ok(restored.gaveUpAt === 1 && restored.state.status === "gave-up" && restored.state.ranking?.length === TOP_SIZE);
   const legacy = { key: "k1", guesses: [25], outcomes: ["wrong" as const], state: { found: [], lives: 2, status: "playing" } };
   assert.deepEqual(restoreTop10(legacy as never, "k1", init).state, init, "progress from the old format is ignored");
-  const stats = computeTop10Stats({ "1": { won: true, livesLeft: 3, found: 10 }, "2": { won: true, livesLeft: 1, found: 10 }, "4": { won: false, livesLeft: 0, found: 6 } }, 4);
-  assert.deepEqual(stats, { played: 3, won: 2, lost: 1, currentStreak: 0, bestStreak: 2, avgLivesLeft: 2 });
+  const lives = { key: "k1", guesses: [25], outcomes: ["wrong" as const], state: { ...init, lives: 2 } };
+  assert.deepEqual(restoreTop10(lives as never, "k1", init).state, init, "progress saved under the lives rules is ignored");
+  const stats = computeTop10Stats({ "1": { won: true, found: 10 }, "2": { won: true, found: 10 }, "4": { won: false, gaveUp: true, found: 6 } }, 4);
+  assert.deepEqual(stats, { played: 3, won: 2, gaveUp: 1, currentStreak: 0, bestStreak: 2, avgFound: 8.7 });
 });
-check("Top 10 share text is spoiler-free", () => {
+check("Top 10 share text is spoiler-free and tells completed from given up", () => {
   const c = tChallenges.get(1)!;
   const v = criterionView(c);
-  const text = buildTop10ShareText({ challengeNumber: 1, criterionShort: v.short, foundPositions: [1, 2, 4, 7, 8, 10, 3], lives: 2 });
-  assert.ok(text.startsWith("🔟 PokeDaily Top 10 #001") && text.includes(v.short) && text.includes("🟩 🟩 🟩 🟩 ⬜") && text.includes("❤️❤️❌") && text.includes("7/10"));
+  const text = buildTop10ShareText({ challengeNumber: 1, criterionShort: v.short, foundPositions: [1, 2, 4, 7, 8, 10, 3], gaveUp: true });
+  assert.ok(text.startsWith("🔟 PokeDaily Top 10 #001") && text.includes(v.short) && text.includes("🟩 🟩 🟩 🟩 ⬜") && text.includes("7/10 · 🏳️ Abandonado"));
+  assert.ok(!/❤|❌|vida/i.test(text), "no lives");
+  const done = buildTop10ShareText({ challengeNumber: 1, criterionShort: v.short, foundPositions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], gaveUp: false });
+  assert.ok(done.includes("10/10 · 🏆 Completado"));
   for (const e of c.ranking) {
     assert.ok(!text.includes(qLookup(e.id)!.name) && !text.includes(String(qLookup(e.id)!.dexNumber).padStart(4, "0")));
   }
@@ -1180,7 +1440,20 @@ check("help reveals one correct Pokémon (the least obvious), never an impostor"
 check("the browser only gets the category and the cards", () => {
   const c = iDays.get(5)!;
   const view = boardView(c, (id) => pokedex.getById(id));
-  assert.deepEqual(Object.keys(view).sort(), ["cards", "impostorCount", "note", "short", "title"].filter((k) => k !== "note" || view.note !== undefined).sort());
+  // `types` only for type / dual-type categories (badges); it repeats what the title already says.
+  let typed = 0;
+  for (const d of iDays.values()) {
+    const v = boardView(d, (id) => pokedex.getById(id));
+    const optional: Record<string, boolean> = { note: v.note !== undefined, types: v.types !== undefined };
+    // Keys that actually reach the browser (undefined values are dropped when serialised).
+    const sent = Object.keys(JSON.parse(JSON.stringify(v))).sort();
+    assert.deepEqual(sent, ["cards", "impostorCount", "note", "short", "title", "types"].filter((k) => optional[k] ?? true).sort());
+    if (v.types) {
+      typed++;
+      assert.ok(v.types.every((t) => v.title.includes(TYPE_LABELS[t])), "types match the visible title");
+    }
+  }
+  assert.ok(typed > 0, "some days have a type category");
   assert.deepEqual(view.cards.map((x) => x.id), c.cards, "same initial order");
   const json = JSON.stringify(view);
   assert.ok(!/impostors|hintId|categoryId|"impostor"/.test(json), "solution data leaked");
@@ -1343,7 +1616,8 @@ check("the browser only gets the current round's options — never answers or fu
   assert.ok(mid.ok);
   const json = JSON.stringify(mid);
   for (const r of c.rounds.slice(3)) for (const id of r.options) assert.ok(!json.includes(`"id":${id},`), "round 4/5 leaked during round 3");
-  assert.ok(!json.includes(`"answer":${c.rounds[2].answer}`), "the current answer leaked");
+  // Delimited match: past rounds' answers are public, and e.g. 251 must not count as a leak of 25.
+  assert.ok(!new RegExp(`"answer":${c.rounds[2].answer}[,}]`).test(json), "the current answer leaked");
 });
 check("PokéCry progress survives a reload and resets on a new day; stats and streak", () => {
   const c = cDays.get(4)!;

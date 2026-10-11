@@ -1,7 +1,6 @@
 import type { PokemonSummary, PokemonType } from "@/lib/pokemon/types";
 
 export const TOP_SIZE = 10;
-export const MAX_LIVES = 3;
 
 export type Direction = "desc" | "asc";
 
@@ -38,7 +37,8 @@ export interface FoundEntry {
   value: string;
 }
 
-export type Top10Status = "playing" | "won" | "lost";
+/** "won": the whole ranking was found · "gave-up": the player used Give Up. There are no lives. */
+export type Top10Status = "playing" | "won" | "gave-up";
 
 /**
  * Client-safe state. Before a position is found the client only knows its
@@ -48,12 +48,11 @@ export interface Top10PublicState {
   /** Type(s) of the Pokémon at each position (index 0 = #1). Both types for dual types. */
   clues: PokemonType[][];
   found: FoundEntry[];
-  lives: number;
   status: Top10Status;
-  /** Present only when the game is over. */
+  /** Present only when the game is over (completed or given up). */
   ranking?: FoundEntry[];
 }
 
 export type Top10Response =
-  | { ok: true; result: "correct" | "wrong"; position?: number; state: Top10PublicState }
+  | { ok: true; result: "correct" | "wrong" | "gave-up"; position?: number; state: Top10PublicState }
   | { ok: false; message: string };

@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { PokemonSearch } from "@/components/pokemon/PokemonSearch";
-import { Dialog } from "@/components/ui/Dialog";
+import { PokemonTypeBadge } from "@/components/pokemon/PokemonTypeBadge";
+import { Dialog, DialogClose } from "@/components/ui/Dialog";
 import type { ConditionView } from "@/lib/grid/conditions/types";
 import type { AnswerRejection, AnswerResult } from "@/lib/grid/types";
 import type { PokemonSummary } from "@/lib/pokemon/types";
@@ -57,23 +58,12 @@ export function AnswerDialog({
         <div>
           <p className="text-xs font-semibold tracking-wider text-mist-dim uppercase">Find a Pokémon that is</p>
           <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-base font-bold">
-            <span className="rounded-lg bg-brand-500/15 px-2 py-0.5 text-brand-300 ring-1 ring-brand-500/30">
-              {row.label}
-            </span>
+            <ConditionChip condition={row} className="bg-brand-500/15 text-brand-300 ring-brand-500/30" />
             <span className="text-mist-dim">+</span>
-            <span className="rounded-lg bg-sun-400/15 px-2 py-0.5 text-sun-300 ring-1 ring-sun-400/30">
-              {column.label}
-            </span>
+            <ConditionChip condition={column} className="bg-sun-400/15 text-sun-300 ring-sun-400/30" />
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="grid size-9 shrink-0 place-items-center rounded-full text-mist transition hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-sun-400"
-        >
-          ✕
-        </button>
+        <DialogClose onClose={onClose} label="Close" />
       </div>
 
       {error && (
@@ -92,4 +82,11 @@ export function AnswerDialog({
       {pending && <p className="pt-2 text-center text-xs text-mist-dim">Checking…</p>}
     </Dialog>
   );
+}
+
+/** A condition in the dialog header: the type badge for type conditions, a tinted chip otherwise. */
+function ConditionChip({ condition, className }: { condition: ConditionView; className: string }) {
+  const type = condition.meta?.pokemonType as string | undefined;
+  if (type) return <PokemonTypeBadge type={type} alt={condition.label} />;
+  return <span className={`rounded-lg px-2 py-0.5 ring-1 ${className}`}>{condition.label}</span>;
 }

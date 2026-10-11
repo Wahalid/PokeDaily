@@ -11,6 +11,8 @@ export interface StoredTop10 {
   key?: string;
   guesses: number[];
   outcomes: GuessOutcome[];
+  /** Number of guesses when the player used Give Up (absent while playing or after completing). */
+  gaveUpAt?: number;
   state?: Top10PublicState;
 }
 
@@ -21,43 +23,47 @@ export const top10StorageKey = (challengeNumber: number) => `pokedaily:top10:${c
 
 /** Pure: saved progress if it belongs to this puzzle, otherwise a fresh game. */
 export function restoreTop10(raw: StoredTop10 | null | undefined, progressKey: string, initial: Top10PublicState) {
-  // `clues` guards against progress saved by the previous (clue-less) Top 10 format.
-  const valid = !!raw && raw.key === progressKey && Array.isArray(raw.guesses) && Array.isArray(raw.state?.clues);
+  // `clues` guards against the previous (clue-less) format; `lives` marks progress saved under the old lives rules.
+  const valid =
+    !!raw && raw.key === progressKey && Array.isArray(raw.guesses) && Array.isArray(raw.state?.clues) && !("lives" in raw.state!);
   return valid
-    ? { guesses: raw!.guesses, outcomes: raw!.outcomes ?? [], state: raw!.state! }
-    : { guesses: [] as number[], outcomes: [] as GuessOutcome[], state: initial };
+    ? { guesses: raw!.guesses, outcomes: raw!.outcomes ?? [], gaveUpAt: raw!.gaveUpAt, state: raw!.state! }
+    : { guesses: [] as number[], outcomes: [] as GuessOutcome[], gaveUpAt: undefined, state: initial };
 }
 
 export function useTop10Progress(challengeNumber: number, progressKey: string, initial: Top10PublicState) {
   const storageKey = top10StorageKey(challengeNumber);
   const [stored] = useLocalStorage<StoredTop10>(storageKey, EMPTY);
   const progress = restoreTop10(stored, progressKey, initial);
-  const save = (guesses: number[], outcomes: GuessOutcome[], state: Top10PublicState) =>
-    writeLocal<StoredTop10>(storageKey, { key: progressKey, guesses, outcomes, state });
+  const save = (guesses: number[], outcomes: GuessOutcome[], state: Top10PublicState, gaveUpAt?: number) =>
+    writeLocal<StoredTop10>(storageKey, { key: progressKey, guesses, outcomes, gaveUpAt, state });
   return { ...progress, save };
 }
 
 // ---- Statistics (Top 10 only, this device) ------------------------------------
 
-type Results = Record<string, { won: boolean; livesLeft: number; found: number }>;
+/** One finished game: completed (`won`) or given up. Older entries (lives rules) count as not completed. */
+type Results = Record<string, { won: boolean; found: number; gaveUp?: boolean }>;
 const RESULTS_KEY = "pokedaily:results:top10";
 const NO_RESULTS: Results = {};
 
-export function recordTop10Result(challengeNumber: number, won: boolean, livesLeft: number, found: number): void {
+export function recordTop10Result(challengeNumber: number, won: boolean, found: number): void {
   const results = readLocal<Results>(RESULTS_KEY, NO_RESULTS);
   if (results[String(challengeNumber)]) return;
-  writeLocal<Results>(RESULTS_KEY, { ...results, [String(challengeNumber)]: { won, livesLeft, found } });
+  writeLocal<Results>(RESULTS_KEY, { ...results, [String(challengeNumber)]: { won, found, gaveUp: !won } });
   if (won) recordCompletion("top10", challengeNumber);
 }
 
 export interface Top10Stats {
   played: number;
+  /** Rankings completed. */
   won: number;
-  lost: number;
+  /** Games ended with Give Up. */
+  gaveUp: number;
   currentStreak: number;
   bestStreak: number;
-  /** Average lives left in won games. */
-  avgLivesLeft: number;
+  /** Average positions found per game. */
+  avgFound: number;
 }
 
 /** Pure computation, exported for tests. */
@@ -71,14 +77,14 @@ export function computeTop10Stats(results: Results, currentNumber: number): Top1
     best = Math.max(best, run);
     prev = n;
   }
-  const lives = wins.reduce((sum, [, r]) => sum + r.livesLeft, 0);
+  const found = entries.reduce((sum, [, r]) => sum + r.found, 0);
   return {
     played: entries.length,
     won: wins.length,
-    lost: entries.length - wins.length,
+    gaveUp: entries.length - wins.length,
     currentStreak: computeStreak(winNumbers, currentNumber),
     bestStreak: best,
-    avgLivesLeft: wins.length ? Math.round((lives / wins.length) * 10) / 10 : 0,
+    avgFound: entries.length ? Math.round((found / entries.length) * 10) / 10 : 0,
   };
 }
 

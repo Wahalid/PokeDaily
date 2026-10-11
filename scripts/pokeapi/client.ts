@@ -106,6 +106,8 @@ export interface RawSpecies {
   is_legendary: boolean;
   is_mythical: boolean;
   is_baby: boolean;
+  /** Chance of being female in eighths (0–8); -1 = genderless. */
+  gender_rate: number;
   color: NamedResource;
   evolves_from_species: NamedResource | null;
   evolution_chain: { url: string };

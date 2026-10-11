@@ -23,6 +23,7 @@ import {
 import {
   FOSSILS,
   PARADOX,
+  PSEUDO_LEGENDARIES,
   REGION_BY_GENERATION,
   REGIONAL_FORM_PREFIX,
   STARTERS,
@@ -87,17 +88,22 @@ export function indexEvolutionChain(chain: RawEvolutionChain): Map<number, Pokem
   const result = new Map<number, PokemonEvolution>();
   let familySize = 0;
 
-  const walk = (link: RawChainLink, stage: number, parent: number | null) => {
+  // Returns the number of stages below `link` on its longest branch (leaf = 0).
+  const walk = (link: RawChainLink, stage: number, parent: number | null): number => {
     const id = idFromUrl(link.species.url);
     familySize++;
-    result.set(id, {
+    const evolution: PokemonEvolution = {
       chainId: chain.id,
       stage,
       evolvesFrom: parent,
       evolvesTo: link.evolves_to.map((child) => idFromUrl(child.species.url)),
       hasEvolutionFamily: false,
-    });
-    link.evolves_to.forEach((child) => walk(child, stage + 1, id));
+      lineStages: stage,
+    };
+    result.set(id, evolution);
+    const below = Math.max(0, ...link.evolves_to.map((child) => 1 + walk(child, stage + 1, id)));
+    evolution.lineStages = stage + below;
+    return below;
   };
   walk(chain.chain, 1, null);
 
@@ -175,6 +181,7 @@ export function toPokemon(
       .sort((a, b) => a.slot - b.slot)
       .map((a) => ({ slug: a.ability.name, name: titleCase(a.ability.name), isHidden: a.is_hidden })),
     stats: toStats(raw),
+    genderRate: Number.isInteger(species.gender_rate) && species.gender_rate >= -1 && species.gender_rate <= 8 ? species.gender_rate : null,
     height: raw.height,
     weight: raw.weight,
     sprites: {
@@ -188,6 +195,7 @@ export function toPokemon(
       evolvesFrom: null,
       evolvesTo: [],
       hasEvolutionFamily: false,
+      lineStages: 1,
     },
     flags: {
       isLegendary: species.is_legendary,
@@ -197,6 +205,7 @@ export function toPokemon(
       isFossil: FOSSILS.has(dex),
       isParadox: PARADOX.has(dex),
       isUltraBeast: ULTRA_BEASTS.has(dex),
+      isPseudoLegendary: PSEUDO_LEGENDARIES.has(dex),
     },
     forms,
   };

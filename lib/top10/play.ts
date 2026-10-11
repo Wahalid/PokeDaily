@@ -3,7 +3,6 @@ import type { Pokemon } from "@/lib/pokemon/types";
 import { getTop10Filter } from "./filters";
 import { DIRECTION_LABELS, getMetric } from "./metrics";
 import {
-  MAX_LIVES,
   TOP_SIZE,
   type FoundEntry,
   type Top10Challenge,
@@ -41,40 +40,50 @@ function entry(challenge: Top10Challenge, index: number, lookup: Lookup): FoundE
 
 /** Initial client state: the type clues and nothing else. */
 export function initialTop10State(challenge: Top10Challenge, lookup: Lookup): Top10PublicState {
-  return { clues: typeClues(challenge, lookup), found: [], lives: MAX_LIVES, status: "playing" };
+  return { clues: typeClues(challenge, lookup), found: [], status: "playing" };
 }
 
 /**
  * Replays all guesses (stateless server) and evaluates the last one.
- * Enforces: valid unique base-species ids, no guesses after the game ended,
- * 3 lives. Only found entries are returned — plus the full ranking once the
- * game is over.
+ * Enforces: valid unique base-species ids and no guesses after the game ended.
+ * There are no lives: a wrong guess costs nothing.
+ *
+ * `gaveUpAt` (optional) = number of guesses made when the player used Give
+ * Up: the game ends there, no later guess is accepted, and only then is the
+ * full ranking revealed. A completed game cannot be given up.
  */
-export function playTop10(challenge: Top10Challenge, guessIds: unknown, lookup: Lookup): Top10Response {
-  if (!Array.isArray(guessIds) || guessIds.length === 0 || !guessIds.every(Number.isInteger)) {
+export function playTop10(challenge: Top10Challenge, guessIds: unknown, lookup: Lookup, gaveUpAt?: unknown): Top10Response {
+  const givingUp = gaveUpAt !== undefined;
+  if (!Array.isArray(guessIds) || !guessIds.every(Number.isInteger) || (guessIds.length === 0 && !givingUp)) {
+    return { ok: false, message: "Petición no válida." };
+  }
+  if (givingUp && (!Number.isInteger(gaveUpAt) || (gaveUpAt as number) < 0 || (gaveUpAt as number) > guessIds.length)) {
     return { ok: false, message: "Petición no válida." };
   }
   if (new Set(guessIds).size !== guessIds.length) return { ok: false, message: "Ya lo has probado." };
 
   const positions = challenge.ranking.map((e) => e.id);
-  let lives = MAX_LIVES;
   const foundIdx: number[] = [];
-  let result: "correct" | "wrong" = "wrong";
+  let result: "correct" | "wrong" | "gave-up" = "wrong";
   for (let i = 0; i < guessIds.length; i++) {
-    if (lives <= 0 || foundIdx.length === TOP_SIZE) return { ok: false, message: "La partida ha terminado." };
+    if (foundIdx.length === TOP_SIZE || (givingUp && i >= (gaveUpAt as number))) {
+      return { ok: false, message: "La partida ha terminado." };
+    }
     const pokemon = lookup(guessIds[i]);
     if (!pokemon || !isBaseSpecies(pokemon)) return { ok: false, message: "Pokémon desconocido." };
     const index = positions.indexOf(pokemon.id);
     result = index >= 0 ? "correct" : "wrong";
     if (index >= 0) foundIdx.push(index);
-    else lives--;
+  }
+  if (givingUp) {
+    if (foundIdx.length === TOP_SIZE) return { ok: false, message: "La partida ha terminado." };
+    result = "gave-up";
   }
 
-  const status = foundIdx.length === TOP_SIZE ? "won" : lives <= 0 ? "lost" : "playing";
+  const status = foundIdx.length === TOP_SIZE ? "won" : givingUp ? "gave-up" : "playing";
   const state: Top10PublicState = {
     clues: typeClues(challenge, lookup),
     found: foundIdx.map((i) => entry(challenge, i, lookup)).sort((a, b) => a.position - b.position),
-    lives,
     status,
     ranking: status === "playing" ? undefined : challenge.ranking.map((_, i) => entry(challenge, i, lookup)),
   };

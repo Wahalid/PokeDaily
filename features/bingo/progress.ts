@@ -3,7 +3,7 @@ import type { BingoMove, BingoPublicState } from "@/lib/bingo/types";
 import { readLocal, useLocalStorage, writeLocal } from "@/lib/storage/local-store";
 import { computeStreak, recordCompletion } from "@/lib/storage/streaks";
 
-/** What is saved per day: the moves (authoritative input) and the last server state. */
+/** What is saved per day: the compacted moves (authoritative input) and the last server state. */
 export interface StoredBingo {
   /** Opaque daily key; progress for a different key (re-frozen day) is ignored. */
   key?: string;
@@ -18,8 +18,10 @@ export const bingoStorageKey = (challengeNumber: number) => `pokedaily:bingo:${c
 
 /** Pure: returns the saved progress if it belongs to this puzzle, otherwise a fresh game. */
 export function restoreBingo(raw: StoredBingo | null | undefined, progressKey: string, initial: BingoPublicState) {
-  // `wrongCells` guards against progress saved by the previous rules (lives; a failed placement used the card up).
-  const valid = !!raw && raw.key === progressKey && Array.isArray(raw.moves) && Array.isArray(raw.state?.wrongCells);
+  // `discards` guards against progress saved by previous rules (lives, or a fixed deck with 3 skips):
+  // those moves would replay into a different game.
+  const valid =
+    !!raw && raw.key === progressKey && Array.isArray(raw.moves) && Array.isArray(raw.state?.wrongCells) && typeof raw.state?.discards === "number";
   return valid ? { moves: raw!.moves, state: raw!.state! } : { moves: [] as BingoMove[], state: initial };
 }
 

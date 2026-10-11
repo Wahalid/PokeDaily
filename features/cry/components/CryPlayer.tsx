@@ -58,7 +58,7 @@ export function CryPlayer({ src, round, onGiveUp }: { src: string; round: number
   return (
     <section
       aria-label={`Cry de la ronda ${round}`}
-      className="relative overflow-hidden rounded-3xl border border-brand-500/40 bg-gradient-to-br from-night-700 via-night-800 to-night-800 p-5 text-center shadow-[0_20px_50px_-20px_rgb(8_17_43/0.9)]"
+      className="panel relative overflow-hidden p-5 text-center"
     >
       <span aria-hidden className="pointer-events-none absolute -top-20 -right-20 size-52 rounded-full bg-sun-400/10 blur-3xl" />
       <audio
@@ -141,7 +141,7 @@ export function CryPlayer({ src, round, onGiveUp }: { src: string; round: number
           <button
             type="button"
             onClick={() => void start(true)}
-            className="mt-3 rounded-full px-3 py-1 text-xs font-bold text-mist transition hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-sun-400"
+            className="mt-2 inline-flex min-h-10 items-center rounded-full px-4 text-xs font-bold text-mist transition hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-sun-400"
           >
             ↺ Volver a escuchar
           </button>

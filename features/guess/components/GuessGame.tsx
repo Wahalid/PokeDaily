@@ -57,7 +57,7 @@ export function GuessGame({ challengeNumber, progressKey }: { challengeNumber: n
       {finished && answer ? (
         <GuessResult won={won} attempts={guesses.length} answer={answer} />
       ) : (
-        <div className="mx-auto mt-5 max-w-md rounded-3xl border border-white/10 bg-night-800/80 p-3 shadow-[0_16px_40px_-20px_rgb(0_0_0/0.7)] sm:p-4">
+        <div className="panel mx-auto mt-5 max-w-md p-3 sm:p-4">
           {error && (
             <p
               key={error.key}
@@ -68,10 +68,10 @@ export function GuessGame({ challengeNumber, progressKey }: { challengeNumber: n
               {error.message}
             </p>
           )}
-          {/* Remount after each guess to clear the query. */}
+          {/* resetKey clears the query after each guess without losing focus. */}
           <div className="flex max-h-[min(26rem,55dvh)] flex-col">
             <PokemonSearch
-              key={guesses.length}
+              resetKey={guesses.length}
               onSelect={guess}
               usedIds={guessedIds}
               disabled={pending}

@@ -4,6 +4,7 @@ import { validateAnswer } from "@/lib/grid/engine";
 import type { AnswerResult } from "@/lib/grid/types";
 import { getPokedex } from "@/lib/pokemon/repository";
 import { getDailyGrid, isPlayableChallenge } from "@/lib/server/grid-service";
+import { todayNumber } from "@/lib/server/test-day";
 
 export interface SubmitGridAnswerInput {
   challengeNumber: number;
@@ -19,7 +20,7 @@ export interface SubmitGridAnswerInput {
 export async function submitGridAnswer(input: SubmitGridAnswerInput): Promise<AnswerResult> {
   const { challengeNumber, cellIndex, pokemonId, usedPokemonIds } = input ?? {};
   if (
-    !isPlayableChallenge(challengeNumber) ||
+    !isPlayableChallenge(challengeNumber, await todayNumber()) ||
     !Number.isInteger(cellIndex) ||
     !Number.isInteger(pokemonId) ||
     !Array.isArray(usedPokemonIds) ||

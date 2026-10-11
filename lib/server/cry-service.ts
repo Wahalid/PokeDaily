@@ -46,8 +46,8 @@ export function getTodaysCry(now: Date = new Date()): DailyCry {
  *    id never reaches the browser either way);
  * null if the day/round is not playable or both sources fail.
  */
-export async function getCryAudio(number: number, round: number): Promise<{ body: Buffer; type: string } | null> {
-  if (!Number.isInteger(number) || number < 1 || number > currentChallengeNumber()) return null;
+export async function getCryAudio(number: number, round: number, today: number): Promise<{ body: Buffer; type: string } | null> {
+  if (!Number.isInteger(number) || number < 1 || number > today) return null;
   if (!Number.isInteger(round) || round < 1 || round > CRY_ROUNDS) return null;
   const key = cryKey();
   const { challenge } = getDailyCry(number);

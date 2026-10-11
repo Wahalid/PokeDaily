@@ -1,6 +1,6 @@
 "use server";
 
-import { currentChallengeNumber } from "@/lib/daily/calendar";
+import { todayNumber } from "@/lib/server/test-day";
 import { playGuessTurn } from "@/lib/guess/play";
 import type { GuessResponse } from "@/lib/guess/types";
 import { getPokedex } from "@/lib/pokemon/repository";
@@ -18,7 +18,7 @@ export interface SubmitGuessInput {
  */
 export async function submitGuess(input: SubmitGuessInput): Promise<GuessResponse> {
   const { challengeNumber, guessIds } = input ?? {};
-  if (!Number.isInteger(challengeNumber) || challengeNumber < 1 || challengeNumber > currentChallengeNumber()) {
+  if (!Number.isInteger(challengeNumber) || challengeNumber < 1 || challengeNumber > (await todayNumber())) {
     return { ok: false, message: "Petición no válida." };
   }
   const { pokemonId } = getDailyGuess(challengeNumber);

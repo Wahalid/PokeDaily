@@ -1,25 +1,10 @@
 "use client";
 
-import { Dialog } from "@/components/ui/Dialog";
+import { Dialog, DialogHeader } from "@/components/ui/Dialog";
+import { StatGrid } from "@/components/ui/StatGrid";
 import { TIERS } from "@/lib/quartets/types";
 import type { QuartetsStats } from "../use-quartets-progress";
 import { TIER_STYLES } from "../tier-styles";
-
-function DialogHeader({ title, onClose }: { title: string; onClose: () => void }) {
-  return (
-    <div className="mt-1 mb-3 flex items-center justify-between gap-3">
-      <h2 className="text-lg font-black tracking-tight">{title}</h2>
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="Cerrar"
-        className="grid size-9 place-items-center rounded-full text-mist transition hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-sun-400"
-      >
-        ✕
-      </button>
-    </div>
-  );
-}
 
 export function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
@@ -60,16 +45,7 @@ export function StatsPanel({ stats }: { stats: QuartetsStats }) {
     { label: "Racha actual", value: stats.currentStreak },
     { label: "Mejor racha", value: stats.bestStreak },
   ];
-  return (
-    <dl className="grid grid-cols-4 gap-2 text-center">
-      {items.map((item) => (
-        <div key={item.label} className="rounded-xl border border-white/10 bg-night-900/60 px-1 py-2">
-          <dd className="text-xl font-black tabular-nums">{item.value}</dd>
-          <dt className="text-[10px] leading-tight font-semibold text-mist uppercase">{item.label}</dt>
-        </div>
-      ))}
-    </dl>
-  );
+  return <StatGrid items={items} />;
 }
 
 export function StatsDialog({ open, onClose, stats }: { open: boolean; onClose: () => void; stats: QuartetsStats }) {

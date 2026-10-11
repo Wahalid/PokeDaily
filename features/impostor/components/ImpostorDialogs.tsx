@@ -1,24 +1,8 @@
 "use client";
 
-import { Dialog } from "@/components/ui/Dialog";
+import { Dialog, DialogHeader } from "@/components/ui/Dialog";
 import { StatGrid } from "@/components/ui/StatGrid";
 import type { ImpostorStats } from "../progress";
-
-function DialogHeader({ title, onClose }: { title: string; onClose: () => void }) {
-  return (
-    <div className="mt-1 mb-3 flex items-center justify-between gap-3">
-      <h2 className="text-lg font-black tracking-tight">{title}</h2>
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="Cerrar"
-        className="grid size-9 place-items-center rounded-full text-mist transition hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-sun-400"
-      >
-        ✕
-      </button>
-    </div>
-  );
-}
 
 export function ImpostorHelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (

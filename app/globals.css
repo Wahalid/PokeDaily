@@ -37,6 +37,8 @@
   --color-night-600: #253a78;
   --color-mist: #b4c2e8;
   --color-mist-dim: #8797c7;
+  /* Small uppercase labels (dates, eyebrows), as on the hub */
+  --color-lavender: #a9a7d6;
 
   --shadow-card: 0 1px 2px rgb(20 26 51 / 0.04), 0 4px 16px rgb(20 26 51 / 0.06);
   --shadow-lift: 0 2px 4px rgb(20 26 51 / 0.06), 0 12px 28px rgb(20 26 51 / 0.1);
@@ -81,43 +83,53 @@ body {
 }
 
 /*
- * Site backdrop: a soft blue glow plus thin yellow/red diagonal pinstripes.
- * Stripes are masked so they only live in the top-right and bottom-left
- * corners and fade out well before the content.
+ * Site backdrop for every page except the hub (which covers it with its
+ * landscape): plain deep navy with a soft blue glow at the top. No
+ * decorations, so game boards sit on a clean surface.
  */
-.site-backdrop::before,
-.site-backdrop::after {
+.site-backdrop::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-}
-
-.site-backdrop::before {
   background:
-    radial-gradient(60rem 28rem at 50% -6rem, rgb(61 99 240 / 0.28), transparent 70%),
+    radial-gradient(60rem 26rem at 50% -8rem, rgb(61 99 240 / 0.22), transparent 70%),
     linear-gradient(180deg, var(--color-night-900), var(--color-night-950));
 }
 
-.site-backdrop::after {
-  background-image: repeating-linear-gradient(
-    135deg,
-    transparent 0 54px,
-    rgb(255 201 40 / 0.42) 54px 56px,
-    transparent 56px 64px,
-    rgb(229 72 77 / 0.45) 64px 66px,
-    transparent 66px 140px
-  );
-  -webkit-mask-image:
-    radial-gradient(56rem 34rem at 100% 0%, rgb(0 0 0 / 0.75) 0%, transparent 75%),
-    radial-gradient(48rem 30rem at 0% 100%, rgb(0 0 0 / 0.75) 0%, transparent 75%);
-  mask-image:
-    radial-gradient(56rem 34rem at 100% 0%, rgb(0 0 0 / 0.75) 0%, transparent 75%),
-    radial-gradient(48rem 30rem at 0% 100%, rgb(0 0 0 / 0.75) 0%, transparent 75%);
+/*
+ * Shared surface, taken from the hub's game cards: navy card, subtle blue
+ * border and a discreet shadow. Used by panels, dialogs and result screens.
+ * The border colour is a variable so the tones below can change it without
+ * depending on utility order.
+ */
+@utility panel {
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--panel-border, rgb(61 99 240 / 0.25));
+  background-color: rgb(18 32 74 / 0.95);
+  box-shadow: 0 12px 30px -18px rgb(0 0 0 / 0.8);
+}
+
+@utility panel-win {
+  --panel-border: rgb(255 201 40 / 0.4);
+}
+
+@utility panel-loss {
+  --panel-border: rgb(229 72 77 / 0.4);
 }
 
 .pixelated {
+  image-rendering: pixelated;
+}
+
+/*
+ * Hub landscape (public/home/landscape.png, used as is). `cover` fills the
+ * viewport without distorting it; anchored to the bottom so the sea and grass
+ * stay in view. The color only shows while the image loads.
+ */
+.home-landscape {
+  background: #080e26 url("/home/landscape.png") center bottom / cover no-repeat;
   image-rendering: pixelated;
 }
 

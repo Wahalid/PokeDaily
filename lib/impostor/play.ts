@@ -1,3 +1,4 @@
+import { typesOfCategory } from "@/lib/pokemon/type-names";
 import type { Pokemon } from "@/lib/pokemon/types";
 import { getImpostorCategory } from "./categories";
 import {
@@ -13,8 +14,10 @@ import {
 /** What the browser gets before playing: the visible category and the cards, never who is an impostor. */
 export function boardView(challenge: ImpostorChallenge, lookup: (id: number) => Pokemon | undefined): ImpostorBoardView {
   const category = getImpostorCategory(challenge.categoryId)!;
+  const types = typesOfCategory(challenge.categoryId);
   return {
     title: category.title,
+    ...(types && { types }),
     short: category.short,
     note: category.note,
     cards: challenge.cards.map((id) => {

@@ -11,6 +11,7 @@
     "update:pokemon": "tsx scripts/update-pokemon.ts",
     "grid:preview": "tsx scripts/grid-preview.ts",
     "verify": "tsx scripts/verify.ts",
+    "home:art": "tsx scripts/home-art.ts",
     "grid:freeze": "tsx scripts/freeze-grids.ts",
     "guess:freeze": "tsx scripts/freeze-guess.ts",
     "quartets:freeze": "tsx scripts/freeze-quartets.ts",

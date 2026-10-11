@@ -1,10 +1,14 @@
 import { PokemonSprite } from "@/components/pokemon/PokemonSprite";
+import { PokemonTypeBadge } from "@/components/pokemon/PokemonTypeBadge";
+import { TYPE_LABELS } from "@/lib/pokemon/labels-es";
+import { typesOfCategory } from "@/lib/pokemon/type-names";
 import { TIERS, type SolvedGroupView } from "@/lib/quartets/types";
 import { TIER_STYLES } from "../tier-styles";
 
 /** A solved (or revealed) group: difficulty icon + label + category + its 4 Pokémon. */
 export function SolvedGroup({ group, revealed = false }: { group: SolvedGroupView; revealed?: boolean }) {
   const tier = TIERS[group.tier];
+  const types = typesOfCategory(group.categoryId);
   return (
     <li
       className={`animate-pop rounded-2xl border px-3 py-2.5 ${TIER_STYLES[group.tier].bar} ${revealed ? "opacity-80" : ""}`}
@@ -15,7 +19,16 @@ export function SolvedGroup({ group, revealed = false }: { group: SolvedGroupVie
           <span aria-hidden>{tier.icon}</span>
           {tier.label}
         </span>
-        <span className="truncate text-sm font-black tracking-wide uppercase sm:text-base">{group.label}</span>
+        {types ? (
+          // "Tipo Agua" / "Tipo Agua y Planta": the badges replace the type names.
+          <span className="flex min-w-0 items-center gap-1">
+            {types.map((t) => (
+              <PokemonTypeBadge key={t} type={t} alt={TYPE_LABELS[t]} size="sm" className="min-w-0 sm:w-[90px]" />
+            ))}
+          </span>
+        ) : (
+          <span className="truncate text-sm font-black tracking-wide uppercase sm:text-base">{group.label}</span>
+        )}
         {revealed && <span className="text-[10px] font-semibold text-mist uppercase">· revelado</span>}
       </div>
       <ul className="mt-1.5 grid grid-cols-4 gap-1">
