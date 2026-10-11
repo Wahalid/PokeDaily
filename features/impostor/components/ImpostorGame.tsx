@@ -110,7 +110,7 @@ export function ImpostorGame({ challengeNumber, progressKey, board }: { challeng
       >
         <p className="text-xs font-bold tracking-[0.15em] text-mist uppercase">Categoría del día</p>
         <p className="mt-1 text-xl leading-snug font-black text-balance text-sun-300 uppercase sm:text-2xl">
-          <CategoryTitle title={board.title} types={board.types} size="lg" />
+          <CategoryTitle title={board.title} types={board.types} clause={board.clause} size="lg" />
         </p>
         {board.note && <p className="mt-1.5 text-xs text-mist-dim">{board.note}</p>}
         <p className="mt-2 text-sm text-mist">
@@ -233,6 +233,7 @@ export function ImpostorGame({ challengeNumber, progressKey, board }: { challeng
           won={state.status === "won"}
           category={board.title}
           categoryTypes={board.types}
+          categoryClause={board.clause}
           score={state.score}
           correctTotal={correctTotal}
           correctFound={

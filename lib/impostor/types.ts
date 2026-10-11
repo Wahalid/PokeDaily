@@ -22,6 +22,8 @@ export interface ImpostorBoardView {
   title: string;
   /** Types of a type / dual-type category, so the UI can show their badges (presentation only). */
   types?: PokemonType[];
+  /** Condition id of a category that has a Grid clause badge (gen:3, flag:legendary…), presentation only. */
+  clause?: string;
   short: string;
   note?: string;
   cards: Array<{ id: number; name: string; sprite: string | null }>;

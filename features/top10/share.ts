@@ -16,7 +16,7 @@ export function buildTop10ShareText(params: {
   const found = new Set(foundPositions);
   const tiles = Array.from({ length: TOP_SIZE }, (_, i) => (found.has(i + 1) ? "🟩" : "⬜"));
   return [
-    `🔟 PokeDaily Top 10 ${formatChallengeNumber(challengeNumber)}`,
+    `🔟 PokeDaily Pokémon Top 10 ${formatChallengeNumber(challengeNumber)}`,
     criterionShort,
     "",
     tiles.slice(0, 5).join(" "),

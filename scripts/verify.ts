@@ -8,7 +8,7 @@ import { getAllConditions, getCondition } from "../lib/grid/conditions/registry"
 import { dailyGridSeed, generateDailyGrid, recentDaysBefore, resolveDailyGrid } from "../lib/grid/daily";
 import { evaluateGrid, hasDistinctSolution, satisfiesCell, validateAnswer } from "../lib/grid/engine";
 import { buildShareText } from "../features/grid/share";
-import { CLAUSE_IMAGES, clauseImageSrc } from "../features/grid/clause-images";
+import { CLAUSE_ALIASES, CLAUSE_IMAGES, clauseImageSrc } from "../lib/pokemon/clause-images";
 import { validateFrozenGrid, type FrozenGrid } from "../lib/grid/frozen";
 import { GENERATOR_VERSION, generateGrid, generateGridSafe, GridGenerationError, gridConditionIds, SAFE_GRID } from "../lib/grid/generator";
 import { createRng, pickOne } from "../lib/random";
@@ -176,6 +176,20 @@ check("every non-type condition has its badge in public/pokemon_grid_clauses/ (a
     assert.ok(existsSync(path.join("public", src)), `${id}: missing ${src}`);
   }
   assert.equal(getAllConditions().filter((c) => c.category === "type").length, 18);
+});
+check("other games show a clause badge only for exactly the same rule as the Grid condition", () => {
+  // Bingo / Groups (shared catalogue) and Impostor categories that get a badge must select the very same Pokémon.
+  const badged = [...QUARTET_CATEGORIES, ...IMPOSTOR_CATEGORIES].filter((c) => clauseImageSrc(c.id));
+  for (const c of badged) {
+    const grid = getCondition(CLAUSE_ALIASES[c.id] ?? c.id);
+    for (const p of pokedex.all) assert.equal(c.test(p), grid.test(p), `${c.id} vs ${grid.id} disagree on ${p.name}`);
+  }
+  const ids = new Set(badged.map((c) => c.id));
+  for (const id of ["gen:1", "gen:9", "flag:legendary", "flag:starter", "evo:none", "types:two", "total:600"]) assert.ok(ids.has(id), `${id} should have a badge`);
+  // look-alikes with other thresholds keep their text
+  for (const id of ["measure:speed>=120", "measure:hp>=120", "measure:heavy", "measure:tall", "measure:light", "evo:can-evolve"]) {
+    assert.equal(clauseImageSrc(id), null, `${id} must not borrow a Grid badge`);
+  }
 });
 check("every catalogue condition matches at least one Pokémon", () => {
   for (const c of getAllConditions()) assert.ok(pokedex.all.some(c.test), `${c.id} matches nothing`);
@@ -631,7 +645,7 @@ check("share text reveals no Pokémon or categories", () => {
     won: true,
     mistakes: 0,
   });
-  assert.ok(text.startsWith("PokeDaily Cuartetos #001") && text.includes("✅ Completado · 0 errores"));
+  assert.ok(text.startsWith("PokeDaily Pokémon Groups #001") && text.includes("✅ Completado · 0 errores"));
   assert.ok(text.includes("🟨🟨🟨🟨") && text.includes("🟪🟪🟪🟪"));
   for (const id of board.layout) assert.ok(!text.includes(pokedex.getById(id)!.name));
   for (const g of board.groups) assert.ok(!text.includes(getQuartetCategory(g.categoryId)!.label));
@@ -1095,7 +1109,7 @@ check("Top 10 share text is spoiler-free and tells completed from given up", () 
   const c = tChallenges.get(1)!;
   const v = criterionView(c);
   const text = buildTop10ShareText({ challengeNumber: 1, criterionShort: v.short, foundPositions: [1, 2, 4, 7, 8, 10, 3], gaveUp: true });
-  assert.ok(text.startsWith("🔟 PokeDaily Top 10 #001") && text.includes(v.short) && text.includes("🟩 🟩 🟩 🟩 ⬜") && text.includes("7/10 · 🏳️ Abandonado"));
+  assert.ok(text.startsWith("🔟 PokeDaily Pokémon Top 10 #001") && text.includes(v.short) && text.includes("🟩 🟩 🟩 🟩 ⬜") && text.includes("7/10 · 🏳️ Abandonado"));
   assert.ok(!/❤|❌|vida/i.test(text), "no lives");
   const done = buildTop10ShareText({ challengeNumber: 1, criterionShort: v.short, foundPositions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], gaveUp: false });
   assert.ok(done.includes("10/10 · 🏆 Completado"));
@@ -1441,19 +1455,24 @@ check("the browser only gets the category and the cards", () => {
   const c = iDays.get(5)!;
   const view = boardView(c, (id) => pokedex.getById(id));
   // `types` only for type / dual-type categories (badges); it repeats what the title already says.
-  let typed = 0;
+  let typed = 0, badged = 0;
   for (const d of iDays.values()) {
     const v = boardView(d, (id) => pokedex.getById(id));
-    const optional: Record<string, boolean> = { note: v.note !== undefined, types: v.types !== undefined };
+    const optional: Record<string, boolean> = { note: v.note !== undefined, types: v.types !== undefined, clause: v.clause !== undefined };
     // Keys that actually reach the browser (undefined values are dropped when serialised).
     const sent = Object.keys(JSON.parse(JSON.stringify(v))).sort();
-    assert.deepEqual(sent, ["cards", "impostorCount", "note", "short", "title", "types"].filter((k) => optional[k] ?? true).sort());
+    assert.deepEqual(sent, ["cards", "clause", "impostorCount", "note", "short", "title", "types"].filter((k) => optional[k] ?? true).sort());
+    // `clause` is the visible category's badge key (only when a badge exists); it reveals nothing the title doesn't.
+    if (v.clause) {
+      badged++;
+      assert.ok(v.clause === d.categoryId && clauseImageSrc(v.clause) && !v.types);
+    }
     if (v.types) {
       typed++;
       assert.ok(v.types.every((t) => v.title.includes(TYPE_LABELS[t])), "types match the visible title");
     }
   }
-  assert.ok(typed > 0, "some days have a type category");
+  assert.ok(typed > 0 && badged > 0, "some days have a type category, some a clause badge");
   assert.deepEqual(view.cards.map((x) => x.id), c.cards, "same initial order");
   const json = JSON.stringify(view);
   assert.ok(!/impostors|hintId|categoryId|"impostor"/.test(json), "solution data leaked");

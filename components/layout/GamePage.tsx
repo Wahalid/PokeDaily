@@ -38,7 +38,8 @@ export function GamePage({
 }) {
   const copy = COPY[lang];
   return (
-    <div className="mx-auto max-w-[1124px] px-4 pt-4 pb-10 sm:pt-6">
+    // data-game-page dims the shared landscape behind the game (see globals.css).
+    <div data-game-page className="mx-auto max-w-[1124px] px-4 pt-4 pb-10 sm:pt-6">
       <Link
         href="/"
         className="inline-flex min-h-10 items-center gap-1.5 rounded-md text-sm font-semibold text-mist transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sun-400"

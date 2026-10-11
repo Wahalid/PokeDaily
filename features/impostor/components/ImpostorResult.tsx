@@ -8,6 +8,7 @@ export function ImpostorResult({
   won,
   category,
   categoryTypes,
+  categoryClause,
   score,
   correctFound,
   correctTotal,
@@ -17,6 +18,7 @@ export function ImpostorResult({
   won: boolean;
   category: string;
   categoryTypes?: PokemonType[];
+  categoryClause?: string;
   score: number;
   correctFound: number;
   correctTotal: number;
@@ -30,7 +32,7 @@ export function ImpostorResult({
       </p>
       <p className="mt-3 text-xs font-bold tracking-[0.2em] text-lavender uppercase">Categoría</p>
       <p className="mt-1 font-bold text-sun-300">
-        <CategoryTitle title={category} types={categoryTypes} />
+        <CategoryTitle title={category} types={categoryTypes} clause={categoryClause} />
       </p>
       <p className={`mt-2 text-5xl font-black tabular-nums ${won ? "text-sun-400" : "text-ember-300"}`}>
         {score}/{BOARD_SIZE}

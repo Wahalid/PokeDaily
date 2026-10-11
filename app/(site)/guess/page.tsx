@@ -6,7 +6,7 @@ import { todayNumber } from "@/lib/server/test-day";
 import { GuessGame } from "@/features/guess/components/GuessGame";
 
 export const metadata: Metadata = {
-  title: "Adivina el Pokémon",
+  title: "Pokémon Guess",
   description: "Descubre el Pokémon del día en 8 intentos.",
 };
 
@@ -16,7 +16,7 @@ export default async function GuessPage() {
   const { number, date, progressKey } = getDailyGuess(await todayNumber());
 
   return (
-    <GamePage lang="es" title="ADIVINA EL " accent="POKÉMON" subtitle="Descubre el Pokémon del día." number={number} date={date} width="lg">
+    <GamePage lang="es" title="POKÉMON " accent="GUESS" subtitle="Descubre el Pokémon del día." number={number} date={date} width="lg">
       <GuessGame challengeNumber={number} progressKey={progressKey} />
     </GamePage>
   );

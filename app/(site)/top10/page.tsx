@@ -9,7 +9,7 @@ import { criterionView, initialTop10State } from "@/lib/top10/play";
 import { Top10Game } from "@/features/top10/components/Top10Game";
 
 export const metadata: Metadata = {
-  title: "Top 10",
+  title: "Pokémon Top 10",
   description: "Descubre los 10 Pokémon que encabezan el ranking del día. Un nuevo Top 10 cada día.",
 };
 
@@ -22,8 +22,8 @@ export default async function Top10Page() {
   return (
     <GamePage
       lang="es"
-      title="TOP "
-      accent="10"
+      title="POKÉMON "
+      accent="TOP 10"
       subtitle="Descubre los 10 Pokémon que encabezan el ranking del día."
       number={daily.number}
       date={daily.date}

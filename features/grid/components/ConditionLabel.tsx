@@ -1,18 +1,17 @@
-import Image from "next/image";
+import { ClauseBadge, hasClauseBadge } from "@/components/pokemon/ClauseBadge";
 import { PokemonTypeBadge } from "@/components/pokemon/PokemonTypeBadge";
 import type { ConditionView } from "@/lib/grid/conditions/types";
-import { clauseImageSrc } from "../clause-images";
 
 /**
  * Renders any Grid condition generically as a compact annotation; uses
  * presentation hints from `meta`. Row labels read vertically below `md`
  * (slim gutter beside the board) and horizontally from `md` up. Type
  * conditions show the type badge; the others show their badge from
- * public/pokemon_grid_clauses/ (see clause-images.ts), or text if none exists.
+ * public/pokemon_grid_clauses/ (ClauseBadge), or text if none exists.
  */
 export function ConditionLabel({ condition, axis }: { condition: ConditionView; axis: "row" | "column" }) {
   const type = condition.meta?.pokemonType as string | undefined;
-  const clause = type ? null : clauseImageSrc(condition.id);
+  const clause = !type && hasClauseBadge(condition.id);
   const row = axis === "row";
 
   return (
@@ -49,12 +48,12 @@ export function ConditionLabel({ condition, axis }: { condition: ConditionView; 
         row ? (
           <>
             <span className="relative h-[78px] w-[18px] shrink-0 md:hidden">
-              <ClauseBadge src={clause} alt={condition.label} className="absolute top-1/2 left-1/2 w-[78px] max-w-none -translate-1/2 -rotate-90" />
+              <ClauseBadge id={condition.id} alt={condition.label} className="absolute top-1/2 left-1/2 w-[78px] max-w-none -translate-1/2 -rotate-90" />
             </span>
-            <ClauseBadge src={clause} alt={condition.label} className="hidden w-28 md:block" />
+            <ClauseBadge id={condition.id} alt={condition.label} className="hidden w-28 md:block" />
           </>
         ) : (
-          <ClauseBadge src={clause} alt={condition.label} className="w-[90px] sm:w-[126px]" />
+          <ClauseBadge id={condition.id} alt={condition.label} className="w-[90px] sm:w-[126px]" />
         )
       ) : (
         <span
@@ -66,19 +65,5 @@ export function ConditionLabel({ condition, axis }: { condition: ConditionView; 
         </span>
       )}
     </div>
-  );
-}
-
-function ClauseBadge({ src, alt, className }: { src: string; alt: string; className: string }) {
-  return (
-    <Image
-      src={src}
-      alt={alt}
-      width={576}
-      height={128}
-      unoptimized
-      draggable={false}
-      className={`h-auto max-w-full shrink select-none ${className}`}
-    />
   );
 }

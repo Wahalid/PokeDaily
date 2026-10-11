@@ -17,7 +17,7 @@ export function QuartetsResult({
 }) {
   return (
     <ResultPanel tone={won ? "win" : "loss"} className="mt-6">
-      <p className={`text-2xl font-black tracking-tight ${won ? "animate-pop" : ""}`}>{won ? "🎉 ¡CUARTETOS COMPLETADO!" : "¡Mañana más!"}</p>
+      <p className={`text-2xl font-black tracking-tight ${won ? "animate-pop" : ""}`}>{won ? "🎉 ¡POKÉMON GROUPS COMPLETADO!" : "¡Mañana más!"}</p>
       <p className="mt-2 text-sm font-semibold text-mist">
         {won ? "Has encontrado los 4 grupos" : "Estos eran los 4 grupos"} · {mistakes} {mistakes === 1 ? "error" : "errores"}
       </p>

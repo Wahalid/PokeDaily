@@ -8,7 +8,7 @@ import { TIER_STYLES } from "../tier-styles";
 
 export function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
-    <Dialog open={open} onClose={onClose} title="Cómo se juega a Cuartetos">
+    <Dialog open={open} onClose={onClose} title="Cómo se juega a Pokémon Groups">
       <DialogHeader title="Cómo se juega" onClose={onClose} />
       <div className="space-y-3 overflow-y-auto text-sm text-mist">
         <p>
@@ -32,7 +32,7 @@ export function HelpDialog({ open, onClose }: { open: boolean; onClose: () => vo
             </li>
           ))}
         </ul>
-        <p>Un nuevo Cuartetos cada día, igual para todos.</p>
+        <p>Un nuevo Pokémon Groups cada día, igual para todos.</p>
       </div>
     </Dialog>
   );
@@ -50,7 +50,7 @@ export function StatsPanel({ stats }: { stats: QuartetsStats }) {
 
 export function StatsDialog({ open, onClose, stats }: { open: boolean; onClose: () => void; stats: QuartetsStats }) {
   return (
-    <Dialog open={open} onClose={onClose} title="Estadísticas de Cuartetos">
+    <Dialog open={open} onClose={onClose} title="Estadísticas de Pokémon Groups">
       <DialogHeader title="Estadísticas" onClose={onClose} />
       <StatsPanel stats={stats} />
       <p className="mt-3 text-center text-xs text-mist-dim">Guardadas en este dispositivo.</p>

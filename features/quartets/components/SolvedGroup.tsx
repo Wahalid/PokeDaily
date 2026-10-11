@@ -1,3 +1,4 @@
+import { ClauseBadge, hasClauseBadge } from "@/components/pokemon/ClauseBadge";
 import { PokemonSprite } from "@/components/pokemon/PokemonSprite";
 import { PokemonTypeBadge } from "@/components/pokemon/PokemonTypeBadge";
 import { TYPE_LABELS } from "@/lib/pokemon/labels-es";
@@ -26,6 +27,9 @@ export function SolvedGroup({ group, revealed = false }: { group: SolvedGroupVie
               <PokemonTypeBadge key={t} type={t} alt={TYPE_LABELS[t]} size="sm" className="min-w-0 sm:w-[90px]" />
             ))}
           </span>
+        ) : hasClauseBadge(group.categoryId) ? (
+          // Conditions shared with Pokémon Grid (generations, Legendary, Starter…) use its clause badge.
+          <ClauseBadge id={group.categoryId} alt={group.label} size="md" className="min-w-0 sm:w-[117px]" />
         ) : (
           <span className="truncate text-sm font-black tracking-wide uppercase sm:text-base">{group.label}</span>
         )}

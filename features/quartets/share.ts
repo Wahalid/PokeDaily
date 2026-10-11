@@ -16,7 +16,7 @@ export function buildQuartetsShareText(params: {
   const rows = attempts.map((a) => a.ids.map((id) => TIERS[tierOf(id) ?? 0].emoji).join(""));
   const errors = `${mistakes} ${mistakes === 1 ? "error" : "errores"}`;
   return [
-    `PokeDaily Cuartetos ${formatChallengeNumber(challengeNumber)}`,
+    `PokeDaily Pokémon Groups ${formatChallengeNumber(challengeNumber)}`,
     "",
     ...rows,
     "",

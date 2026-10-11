@@ -22,7 +22,7 @@ export function GameCard({ game }: { game: GameInfo }) {
         loading="eager"
         className="pixelated aspect-[5/3] w-full rounded-[10px] border border-white/5 bg-night-900"
       />
-      <h2 className="mt-4 text-[17px] leading-tight font-bold">Pokémon {game.name}</h2>
+      <h2 className="mt-4 text-[17px] leading-tight font-bold">{game.name}</h2>
       <p className="mt-1.5 flex-1 text-[13px] leading-snug text-mist">{game.tagline}</p>
       <span className="group/button mt-4 flex h-10 w-full items-center justify-center gap-1.5 rounded-[11px] bg-sun-400 text-sm font-bold text-night-950 transition-colors hover:bg-sun-300 group-focus-visible:bg-sun-300">
         {game.cta ?? `Play ${game.name}`}

@@ -1,7 +1,9 @@
 /**
- * Grid condition id → its badge in public/pokemon_grid_clauses/ (576×128, 9:2,
- * like the type badges). Types are not listed: they use PokemonTypeBadge.
- * A condition without an entry keeps its text label.
+ * Condition id → its badge in public/pokemon_grid_clauses/ (576×128, 9:2,
+ * like the type badges). Keyed by Pokémon Grid condition ids; PokéBingo,
+ * Pokémon Groups and PokéImpostor share the same ids for the same rules
+ * (gen:3, flag:legendary, evo:none…). Types are not listed: they use
+ * PokemonTypeBadge. A condition without an entry keeps its text label.
  */
 export const CLAUSE_IMAGES: Readonly<Record<string, string>> = {
   "gen:1": "gen_i.png",
@@ -48,7 +50,17 @@ export const CLAUSE_IMAGES: Readonly<Record<string, string>> = {
   "size:small": "tiny.png",
 };
 
+/**
+ * Other games' ids for exactly the same rule as a Grid condition (verified
+ * Pokémon by Pokémon in `npm run verify`). Look-alikes with other thresholds
+ * (Velocidad ≥ 120, ≥ 200 kg, ≥ 3 m…) are deliberately absent: no badge says 100+ for 120+.
+ */
+export const CLAUSE_ALIASES: Readonly<Record<string, string>> = {
+  "types:two": "typing:dual", // PokéImpostor «Dos tipos»
+  "total:600": "stat:total>=600", // PokéImpostor «Total ≥ 600»
+};
+
 export function clauseImageSrc(conditionId: string): string | null {
-  const file = CLAUSE_IMAGES[conditionId];
+  const file = CLAUSE_IMAGES[CLAUSE_ALIASES[conditionId] ?? conditionId];
   return file ? `/pokemon_grid_clauses/${file}` : null;
 }

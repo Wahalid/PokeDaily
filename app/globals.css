@@ -83,22 +83,6 @@ body {
 }
 
 /*
- * Site backdrop for every page except the hub (which covers it with its
- * landscape): plain deep navy with a soft blue glow at the top. No
- * decorations, so game boards sit on a clean surface.
- */
-.site-backdrop::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(60rem 26rem at 50% -8rem, rgb(61 99 240 / 0.22), transparent 70%),
-    linear-gradient(180deg, var(--color-night-900), var(--color-night-950));
-}
-
-/*
  * Shared surface, taken from the hub's game cards: navy card, subtle blue
  * border and a discreet shadow. Used by panels, dialogs and result screens.
  * The border colour is a variable so the tones below can change it without
@@ -124,13 +108,29 @@ body {
 }
 
 /*
- * Hub landscape (public/home/landscape.png, used as is). `cover` fills the
- * viewport without distorting it; anchored to the bottom so the sea and grass
- * stay in view. The color only shows while the image loads.
+ * Site landscape (public/home/landscape.png, used as is) behind every page.
+ * `cover` fills the viewport without distorting it; anchored to the bottom so
+ * the sea and grass stay in view. The color only shows while the image loads.
  */
-.home-landscape {
+.site-landscape {
   background: #080e26 url("/home/landscape.png") center bottom / cover no-repeat;
   image-rendering: pixelated;
+}
+
+/*
+ * Game pages dim the landscape so boards and text stay readable; darker
+ * towards the bottom, where the grass is lightest. The hub shows it as is.
+ */
+.site-landscape::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: linear-gradient(180deg, rgb(8 14 38 / 0.7), rgb(8 14 38 / 0.76) 55%, rgb(8 14 38 / 0.86));
+}
+
+.site-backdrop:has([data-game-page]) .site-landscape::after {
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {

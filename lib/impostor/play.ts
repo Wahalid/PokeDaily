@@ -1,3 +1,4 @@
+import { clauseImageSrc } from "@/lib/pokemon/clause-images";
 import { typesOfCategory } from "@/lib/pokemon/type-names";
 import type { Pokemon } from "@/lib/pokemon/types";
 import { getImpostorCategory } from "./categories";
@@ -15,9 +16,11 @@ import {
 export function boardView(challenge: ImpostorChallenge, lookup: (id: number) => Pokemon | undefined): ImpostorBoardView {
   const category = getImpostorCategory(challenge.categoryId)!;
   const types = typesOfCategory(challenge.categoryId);
+  const clause = clauseImageSrc(challenge.categoryId) ? challenge.categoryId : undefined;
   return {
     title: category.title,
     ...(types && { types }),
+    ...(clause && { clause }),
     short: category.short,
     note: category.note,
     cards: challenge.cards.map((id) => {

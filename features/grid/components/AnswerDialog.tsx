@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { PokemonSearch } from "@/components/pokemon/PokemonSearch";
+import { ClauseBadge, hasClauseBadge } from "@/components/pokemon/ClauseBadge";
 import { PokemonTypeBadge } from "@/components/pokemon/PokemonTypeBadge";
 import { Dialog, DialogClose } from "@/components/ui/Dialog";
 import type { ConditionView } from "@/lib/grid/conditions/types";
@@ -84,9 +85,10 @@ export function AnswerDialog({
   );
 }
 
-/** A condition in the dialog header: the type badge for type conditions, a tinted chip otherwise. */
+/** A condition in the dialog header: its type or clause badge (as on the board), a tinted chip otherwise. */
 function ConditionChip({ condition, className }: { condition: ConditionView; className: string }) {
   const type = condition.meta?.pokemonType as string | undefined;
   if (type) return <PokemonTypeBadge type={type} alt={condition.label} />;
+  if (hasClauseBadge(condition.id)) return <ClauseBadge id={condition.id} alt={condition.label} size="lg" />;
   return <span className={`rounded-lg px-2 py-0.5 ring-1 ${className}`}>{condition.label}</span>;
 }

@@ -7,7 +7,7 @@ import { todayNumber } from "@/lib/server/test-day";
 import { QuartetsGame } from "@/features/quartets/components/QuartetsGame";
 
 export const metadata: Metadata = {
-  title: "Cuartetos",
+  title: "Pokémon Groups",
   description: "Encuentra los 4 grupos de 4 Pokémon. Un nuevo reto cada día.",
 };
 
@@ -18,7 +18,7 @@ export default async function QuartetsPage() {
   const cards = publicCards(daily);
 
   return (
-    <GamePage lang="es" title="CUAR" accent="TETOS" subtitle="Encuentra los 4 grupos de 4 Pokémon." number={daily.number} date={daily.date}>
+    <GamePage lang="es" title="POKÉMON " accent="GROUPS" subtitle="Encuentra los 4 grupos de 4 Pokémon." number={daily.number} date={daily.date}>
       {cards.length === 16 ? (
         <QuartetsGame challengeNumber={daily.number} progressKey={daily.progressKey} cards={cards} />
       ) : (

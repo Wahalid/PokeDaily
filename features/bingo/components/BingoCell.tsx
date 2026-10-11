@@ -1,3 +1,4 @@
+import { ClauseBadge, hasClauseBadge } from "@/components/pokemon/ClauseBadge";
 import { PokemonSprite } from "@/components/pokemon/PokemonSprite";
 import { PokemonTypeBadge } from "@/components/pokemon/PokemonTypeBadge";
 import type { BingoCellView } from "@/lib/bingo/types";
@@ -28,14 +29,18 @@ export function BingoCell({
   finished: boolean;
   onSelect: () => void;
 }) {
-  // Type and dual-type cells show the type badges instead of the type names (presentation only).
+  // Type and dual-type cells show the type badges instead of the type names, and conditions shared
+  // with Pokémon Grid (generations, Legendary, Starter…) its clause badges (presentation only).
   const types = typesOfCategory(cell.categoryId);
+  const clause = !types && hasClauseBadge(cell.categoryId);
   const label = types ? (
     <span className="flex w-full flex-col items-center gap-0.5">
       {types.map((t) => (
         <PokemonTypeBadge key={t} type={t} alt={TYPE_LABELS[t]} size="sm" className="sm:w-[90px]" />
       ))}
     </span>
+  ) : clause ? (
+    <ClauseBadge id={cell.categoryId} alt={cell.short} size="sm" className="sm:w-[90px]" />
   ) : (
     <span className="max-w-full rounded-md px-1.5 py-0.5 text-center text-[10px] leading-tight font-black break-words text-white sm:text-xs">
       {cell.short}
@@ -62,6 +67,8 @@ export function BingoCell({
               <PokemonTypeBadge key={t} type={t} alt="" size="xs" className="min-w-0 sm:w-[72px]" />
             ))}
           </span>
+        ) : clause ? (
+          <ClauseBadge id={cell.categoryId} alt="" size="xs" className="min-w-0 sm:w-[72px]" />
         ) : (
           <span className="w-full truncate text-center text-[8px] font-semibold text-mist sm:text-[10px]">{cell.short}</span>
         )}

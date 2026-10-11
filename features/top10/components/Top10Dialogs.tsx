@@ -7,7 +7,7 @@ import type { Top10Stats } from "../progress";
 
 export function Top10HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
-    <Dialog open={open} onClose={onClose} title="Cómo se juega a Top 10">
+    <Dialog open={open} onClose={onClose} title="Cómo se juega a Pokémon Top 10">
       <DialogHeader title="Cómo se juega" onClose={onClose} />
       <ol className="list-decimal space-y-2 pl-5 text-sm text-mist">
         <li>Cada día hay un <strong className="text-white">nuevo Top 10</strong>.</li>
@@ -49,7 +49,7 @@ export function Top10StatsPanel({ stats }: { stats: Top10Stats }) {
 
 export function Top10StatsDialog({ open, onClose, stats }: { open: boolean; onClose: () => void; stats: Top10Stats }) {
   return (
-    <Dialog open={open} onClose={onClose} title="Estadísticas de Top 10">
+    <Dialog open={open} onClose={onClose} title="Estadísticas de Pokémon Top 10">
       <DialogHeader title="Estadísticas" onClose={onClose} />
       <Top10StatsPanel stats={stats} />
       <p className="mt-3 text-center text-xs text-mist-dim">Guardadas en este dispositivo.</p>
